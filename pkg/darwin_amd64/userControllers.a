@@ -1,0 +1,973 @@
+!<arch>
+__.PKGDEF       0           0     0     644     60505     `
+go object darwin amd64 go1.5.3 X:none
+build id "f01c647837d23639c905630a2dd5ae83a03a9790"
+
+$$
+package userControllers
+	import runtime "runtime"
+	import models "models"
+	import json "encoding/json"
+	import http "net/http"
+	import log "log"
+	import authentication "core/authentication"
+	import uuid "github.com/lonelycode/go-uuid/uuid"
+	import negroni "github.com/codegangsta/negroni"
+	import database "mydb"
+	import mux "github.com/gorilla/mux"
+	import parameters "api/parameters"
+	import bson "gopkg.in/mgo.v2/bson"
+	type @"".FBTokenValidationResponse struct { Name string "json: \"name\""; ID string "json: \"id\"" }
+	type @"".SignInResponse struct { Token string "json:\"token\""; ID string "json:\"id\" bson:\"_id,omitempty\"" }
+	import io "io" // indirect
+	type @"io".Writer interface { Write(@"io".p []byte) (@"io".n int, @"io".err error) }
+	type @"net/http".keyValues struct { @"net/http".key string; @"net/http".values []string }
+	type @"net/http".headerSorter struct { @"net/http".kvs []@"net/http".keyValues }
+	func (@"net/http".sÂ·2 *@"net/http".headerSorter "esc:0x1") Len () (? int) { return len(@"net/http".sÂ·2.@"net/http".kvs) }
+	func (@"net/http".sÂ·2 *@"net/http".headerSorter "esc:0x1") Less (@"net/http".iÂ·3 int, @"net/http".jÂ·4 int) (? bool) { return @"net/http".sÂ·2.@"net/http".kvs[@"net/http".iÂ·3].@"net/http".key < @"net/http".sÂ·2.@"net/http".kvs[@"net/http".jÂ·4].@"net/http".key }
+	func (@"net/http".sÂ·1 *@"net/http".headerSorter "esc:0x9") Swap (@"net/http".iÂ·2 int, @"net/http".jÂ·3 int) { @"net/http".sÂ·1.@"net/http".kvs[@"net/http".iÂ·2], @"net/http".sÂ·1.@"net/http".kvs[@"net/http".jÂ·3] = @"net/http".sÂ·1.@"net/http".kvs[@"net/http".jÂ·3], @"net/http".sÂ·1.@"net/http".kvs[@"net/http".iÂ·2] }
+	type @"net/http".Header map[string][]string
+	func (@"net/http".hÂ·1 @"net/http".Header "esc:0x9") Add (@"net/http".keyÂ·2 string, @"net/http".valueÂ·3 string)
+	func (@"net/http".hÂ·1 @"net/http".Header "esc:0x1") Del (@"net/http".keyÂ·2 string "esc:0x1")
+	func (@"net/http".hÂ·2 @"net/http".Header "esc:0x1") Get (@"net/http".keyÂ·3 string "esc:0x1") (? string)
+	func (@"net/http".hÂ·1 @"net/http".Header "esc:0x1") Set (@"net/http".keyÂ·2 string, @"net/http".valueÂ·3 string)
+	func (@"net/http".hÂ·2 @"net/http".Header "esc:0x9") Write (@"net/http".wÂ·3 @"io".Writer) (? error)
+	func (@"net/http".hÂ·2 @"net/http".Header "esc:0x9") WriteSubset (@"net/http".wÂ·3 @"io".Writer, @"net/http".excludeÂ·4 map[string]bool "esc:0x1") (? error)
+	func (@"net/http".hÂ·2 @"net/http".Header "esc:0x9") @"net/http".clone () (? @"net/http".Header)
+	func (@"net/http".hÂ·2 @"net/http".Header "esc:0x1") @"net/http".get (@"net/http".keyÂ·3 string "esc:0x1") (? string) { var @"net/http".vÂ·4 []string; ; @"net/http".vÂ·4 = @"net/http".hÂ·2[@"net/http".keyÂ·3]; if len(@"net/http".vÂ·4) > 0x0 { return @"net/http".vÂ·4[0x0] }; return "" }
+	func (@"net/http".hÂ·3 @"net/http".Header "esc:0x9") @"net/http".sortedKeyValues (@"net/http".excludeÂ·4 map[string]bool "esc:0x1") (@"net/http".kvsÂ·1 []@"net/http".keyValues, @"net/http".hsÂ·2 *@"net/http".headerSorter)
+	type @"net/http".ResponseWriter interface { Header() (? @"net/http".Header); Write(? []byte) (? int, ? error); WriteHeader(? int) }
+	import url "net/url" // indirect
+	type @"net/url".Userinfo struct { @"net/url".username string; @"net/url".password string; @"net/url".passwordSet bool }
+	func (@"net/url".uÂ·3 *@"net/url".Userinfo "esc:0x22") Password () (? string, ? bool) { if @"net/url".uÂ·3.@"net/url".passwordSet { return @"net/url".uÂ·3.@"net/url".password, true }; return "", false }
+	func (@"net/url".uÂ·2 *@"net/url".Userinfo "esc:0x22") String () (? string)
+	func (@"net/url".uÂ·2 *@"net/url".Userinfo "esc:0x22") Username () (? string) { return @"net/url".uÂ·2.@"net/url".username }
+	type @"net/url".Values map[string][]string
+	func (@"net/url".vÂ·1 @"net/url".Values "esc:0x9") Add (@"net/url".keyÂ·2 string, @"net/url".valueÂ·3 string) { @"net/url".vÂ·1[@"net/url".keyÂ·2] = append(@"net/url".vÂ·1[@"net/url".keyÂ·2], @"net/url".valueÂ·3) }
+	func (@"net/url".vÂ·1 @"net/url".Values "esc:0x1") Del (@"net/url".keyÂ·2 string "esc:0x1") { delete(@"net/url".vÂ·1, @"net/url".keyÂ·2) }
+	func (@"net/url".vÂ·2 @"net/url".Values "esc:0x1") Encode () (? string)
+	func (@"net/url".vÂ·2 @"net/url".Values "esc:0x1") Get (@"net/url".keyÂ·3 string "esc:0x1") (? string) { if @"net/url".vÂ·2 == nil { return "" }; var @"net/url".vsÂ·4 []string; ; var @"net/url".okÂ·5 bool; ; @"net/url".vsÂ·4, @"net/url".okÂ·5 = @"net/url".vÂ·2[@"net/url".keyÂ·3]; if !@"net/url".okÂ·5 || len(@"net/url".vsÂ·4) == 0x0 { return "" }; return @"net/url".vsÂ·4[0x0] }
+	func (@"net/url".vÂ·1 @"net/url".Values "esc:0x1") Set (@"net/url".keyÂ·2 string, @"net/url".valueÂ·3 string) { @"net/url".vÂ·1[@"net/url".keyÂ·2] = ([]string{ 0x0:@"net/url".valueÂ·3 }) }
+	type @"net/url".URL struct { Scheme string; Opaque string; User *@"net/url".Userinfo; Host string; Path string; RawPath string; RawQuery string; Fragment string }
+	func (@"net/url".uÂ·2 *@"net/url".URL "esc:0x22") EscapedPath () (? string)
+	func (@"net/url".uÂ·2 *@"net/url".URL "esc:0x1") IsAbs () (? bool) { return @"net/url".uÂ·2.Scheme != "" }
+	func (@"net/url".uÂ·3 *@"net/url".URL "esc:0x9") Parse (@"net/url".refÂ·4 string) (? *@"net/url".URL, ? error)
+	func (@"net/url".uÂ·2 *@"net/url".URL "esc:0x9") Query () (? @"net/url".Values)
+	func (@"net/url".uÂ·2 *@"net/url".URL "esc:0x22") RequestURI () (? string)
+	func (@"net/url".uÂ·2 *@"net/url".URL "esc:0xa") ResolveReference (@"net/url".refÂ·3 *@"net/url".URL "esc:0xa") (? *@"net/url".URL)
+	func (@"net/url".uÂ·2 *@"net/url".URL "esc:0x9") String () (? string)
+	type @"io".ReadCloser interface { Close() (? error); Read(@"io".p []byte) (@"io".n int, @"io".err error) }
+	import multipart "mime/multipart" // indirect
+	import textproto "net/textproto" // indirect
+	type @"net/textproto".MIMEHeader map[string][]string
+	func (@"net/textproto".hÂ·1 @"net/textproto".MIMEHeader "esc:0x9") Add (@"net/textproto".keyÂ·2 string, @"net/textproto".valueÂ·3 string)
+	func (@"net/textproto".hÂ·1 @"net/textproto".MIMEHeader "esc:0x1") Del (@"net/textproto".keyÂ·2 string "esc:0x1")
+	func (@"net/textproto".hÂ·2 @"net/textproto".MIMEHeader "esc:0x1") Get (@"net/textproto".keyÂ·3 string "esc:0x1") (? string)
+	func (@"net/textproto".hÂ·1 @"net/textproto".MIMEHeader "esc:0x1") Set (@"net/textproto".keyÂ·2 string, @"net/textproto".valueÂ·3 string)
+	type @"mime/multipart".File interface { Close() (? error); Read(@"io".p []byte) (@"io".n int, @"io".err error); ReadAt(@"io".p []byte, @"io".off int64) (@"io".n int, @"io".err error); Seek(@"io".offset int64, @"io".whence int) (? int64, ? error) }
+	type @"mime/multipart".FileHeader struct { Filename string; Header @"net/textproto".MIMEHeader; @"mime/multipart".content []byte; @"mime/multipart".tmpfile string }
+	func (@"mime/multipart".fhÂ·3 *@"mime/multipart".FileHeader) Open () (? @"mime/multipart".File, ? error)
+	type @"mime/multipart".Form struct { Value map[string][]string; File map[string][]*@"mime/multipart".FileHeader }
+	func (@"mime/multipart".fÂ·2 *@"mime/multipart".Form "esc:0x9") RemoveAll () (? error)
+	import tls "crypto/tls" // indirect
+	import x509 "crypto/x509" // indirect
+	type @"crypto/x509".SignatureAlgorithm int
+	type @"crypto/x509".PublicKeyAlgorithm int
+	import big "math/big" // indirect
+	type @"math/big".Word uintptr
+	type @"math/big".divisor struct { @"math/big".bbb @"math/big".nat; @"math/big".nbits int; @"math/big".ndigits int }
+	import rand "math/rand" // indirect
+	type @"math/rand".Source interface { Int63() (? int64); Seed(@"math/rand".seed int64) }
+	type @"math/rand".Rand struct { @"math/rand".src @"math/rand".Source }
+	func (@"math/rand".rÂ·2 *@"math/rand".Rand "esc:0x9") ExpFloat64 () (? float64)
+	func (@"math/rand".rÂ·2 *@"math/rand".Rand "esc:0x9") Float32 () (? float32)
+	func (@"math/rand".rÂ·2 *@"math/rand".Rand "esc:0x9") Float64 () (? float64)
+	func (@"math/rand".rÂ·2 *@"math/rand".Rand "esc:0x9") Int () (? int)
+	func (@"math/rand".rÂ·2 *@"math/rand".Rand "esc:0x9") Int31 () (? int32)
+	func (@"math/rand".rÂ·2 *@"math/rand".Rand "esc:0x9") Int31n (@"math/rand".nÂ·3 int32) (? int32)
+	func (@"math/rand".rÂ·2 *@"math/rand".Rand "esc:0x9") Int63 () (? int64)
+	func (@"math/rand".rÂ·2 *@"math/rand".Rand "esc:0x9") Int63n (@"math/rand".nÂ·3 int64) (? int64)
+	func (@"math/rand".rÂ·2 *@"math/rand".Rand "esc:0x9") Intn (@"math/rand".nÂ·3 int) (? int)
+	func (@"math/rand".rÂ·2 *@"math/rand".Rand "esc:0x9") NormFloat64 () (? float64)
+	func (@"math/rand".rÂ·2 *@"math/rand".Rand "esc:0x9") Perm (@"math/rand".nÂ·3 int) (? []int)
+	func (@"math/rand".rÂ·1 *@"math/rand".Rand "esc:0x9") Seed (@"math/rand".seedÂ·2 int64)
+	func (@"math/rand".rÂ·2 *@"math/rand".Rand "esc:0x9") Uint32 () (? uint32)
+	type @"io".ByteScanner interface { ReadByte() (@"io".c byte, @"io".err error); UnreadByte() (? error) }
+	type @"math/big".nat []@"math/big".Word
+	func (@"math/big".zÂ·2 @"math/big".nat) @"math/big".add (@"math/big".xÂ·3 @"math/big".nat, @"math/big".yÂ·4 @"math/big".nat) (? @"math/big".nat)
+	func (@"math/big".zÂ·2 @"math/big".nat "esc:0x12") @"math/big".and (@"math/big".xÂ·3 @"math/big".nat "esc:0x1", @"math/big".yÂ·4 @"math/big".nat "esc:0x1") (? @"math/big".nat)
+	func (@"math/big".zÂ·2 @"math/big".nat "esc:0x12") @"math/big".andNot (@"math/big".xÂ·3 @"math/big".nat "esc:0x9", @"math/big".yÂ·4 @"math/big".nat "esc:0x1") (? @"math/big".nat)
+	func (@"math/big".xÂ·2 @"math/big".nat "esc:0x1") @"math/big".bit (@"math/big".iÂ·3 uint) (? uint) { var @"math/big".jÂ·4 uint; ; @"math/big".jÂ·4 = @"math/big".iÂ·3 / 0x40; if @"math/big".jÂ·4 >= uint(len(@"math/big".xÂ·2)) { return 0x0 }; return uint(@"math/big".xÂ·2[@"math/big".jÂ·4] >> (@"math/big".iÂ·3 % 0x40) & @"math/big".Word(0x1)) }
+	func (@"math/big".xÂ·2 @"math/big".nat "esc:0x1") @"math/big".bitLen () (? int)
+	func (@"math/big".zÂ·2 @"math/big".nat "esc:0x1") @"math/big".bytes (@"math/big".bufÂ·3 []byte "esc:0x1") (@"math/big".iÂ·1 int)
+	func (@"math/big".zÂ·1 @"math/big".nat "esc:0x1") @"math/big".clear ()
+	func (@"math/big".xÂ·2 @"math/big".nat "esc:0x1") @"math/big".cmp (@"math/big".yÂ·3 @"math/big".nat "esc:0x1") (@"math/big".rÂ·1 int)
+	func (@"math/big".qÂ·1 @"math/big".nat) @"math/big".convertWords (@"math/big".sÂ·2 []byte "esc:0x1", @"math/big".charsetÂ·3 string "esc:0x1", @"math/big".bÂ·4 @"math/big".Word, @"math/big".ndigitsÂ·5 int, @"math/big".bbÂ·6 @"math/big".Word, @"math/big".tableÂ·7 []@"math/big".divisor "esc:0x9")
+	func (@"math/big".xÂ·2 @"math/big".nat "esc:0x9") @"math/big".decimalString () (? string)
+	func (@"math/big".zÂ·3 @"math/big".nat) @"math/big".div (@"math/big".z2Â·4 @"math/big".nat, @"math/big".uÂ·5 @"math/big".nat, @"math/big".vÂ·6 @"math/big".nat) (@"math/big".qÂ·1 @"math/big".nat, @"math/big".rÂ·2 @"math/big".nat)
+	func (@"math/big".zÂ·3 @"math/big".nat "esc:0x12") @"math/big".divLarge (@"math/big".uÂ·4 @"math/big".nat, @"math/big".uInÂ·5 @"math/big".nat, @"math/big".vÂ·6 @"math/big".nat) (@"math/big".qÂ·1 @"math/big".nat, @"math/big".rÂ·2 @"math/big".nat)
+	func (@"math/big".zÂ·3 @"math/big".nat) @"math/big".divW (@"math/big".xÂ·4 @"math/big".nat, @"math/big".yÂ·5 @"math/big".Word) (@"math/big".qÂ·1 @"math/big".nat, @"math/big".rÂ·2 @"math/big".Word)
+	func (@"math/big".zÂ·2 @"math/big".nat) @"math/big".expNN (@"math/big".xÂ·3 @"math/big".nat, @"math/big".yÂ·4 @"math/big".nat "esc:0x1", @"math/big".mÂ·5 @"math/big".nat) (? @"math/big".nat)
+	func (@"math/big".zÂ·2 @"math/big".nat) @"math/big".expNNMontgomery (@"math/big".xÂ·3 @"math/big".nat, @"math/big".yÂ·4 @"math/big".nat "esc:0x1", @"math/big".mÂ·5 @"math/big".nat) (? @"math/big".nat)
+	func (@"math/big".zÂ·2 @"math/big".nat) @"math/big".expNNWindowed (@"math/big".xÂ·3 @"math/big".nat, @"math/big".yÂ·4 @"math/big".nat "esc:0x1", @"math/big".mÂ·5 @"math/big".nat) (? @"math/big".nat)
+	func (@"math/big".zÂ·2 @"math/big".nat) @"math/big".expWW (@"math/big".xÂ·3 @"math/big".Word, @"math/big".yÂ·4 @"math/big".Word) (? @"math/big".nat)
+	func (@"math/big".xÂ·2 @"math/big".nat "esc:0x9") @"math/big".hexString () (? string)
+	func (@"math/big".zÂ·2 @"math/big".nat "esc:0x12") @"math/big".make (@"math/big".nÂ·3 int) (? @"math/big".nat)
+	func (@"math/big".xÂ·2 @"math/big".nat) @"math/big".modW (@"math/big".dÂ·3 @"math/big".Word) (@"math/big".rÂ·1 @"math/big".Word)
+	func (@"math/big".zÂ·2 @"math/big".nat) @"math/big".montgomery (@"math/big".xÂ·3 @"math/big".nat, @"math/big".yÂ·4 @"math/big".nat "esc:0x1", @"math/big".mÂ·5 @"math/big".nat, @"math/big".kÂ·6 @"math/big".Word, @"math/big".nÂ·7 int) (? @"math/big".nat)
+	func (@"math/big".zÂ·2 @"math/big".nat) @"math/big".mul (@"math/big".xÂ·3 @"math/big".nat, @"math/big".yÂ·4 @"math/big".nat) (? @"math/big".nat)
+	func (@"math/big".zÂ·2 @"math/big".nat) @"math/big".mulAddWW (@"math/big".xÂ·3 @"math/big".nat, @"math/big".yÂ·4 @"math/big".Word, @"math/big".rÂ·5 @"math/big".Word) (? @"math/big".nat)
+	func (@"math/big".zÂ·2 @"math/big".nat) @"math/big".mulRange (@"math/big".aÂ·3 uint64, @"math/big".bÂ·4 uint64) (? @"math/big".nat)
+	func (@"math/big".zÂ·2 @"math/big".nat "esc:0x12") @"math/big".norm () (? @"math/big".nat)
+	func (@"math/big".zÂ·2 @"math/big".nat "esc:0x12") @"math/big".or (@"math/big".xÂ·3 @"math/big".nat "esc:0x9", @"math/big".yÂ·4 @"math/big".nat "esc:0x9") (? @"math/big".nat)
+	func (@"math/big".nÂ·2 @"math/big".nat) @"math/big".probablyPrime (@"math/big".repsÂ·3 int) (? bool)
+	func (@"math/big".zÂ·2 @"math/big".nat "esc:0x12") @"math/big".random (@"math/big".randÂ·3 *@"math/rand".Rand "esc:0x9", @"math/big".limitÂ·4 @"math/big".nat "esc:0x1", @"math/big".nÂ·5 int) (? @"math/big".nat)
+	func (@"math/big".zÂ·5 @"math/big".nat) @"math/big".scan (@"math/big".rÂ·6 @"io".ByteScanner, @"math/big".baseÂ·7 int, @"math/big".fracOkÂ·8 bool) (@"math/big".resÂ·1 @"math/big".nat, @"math/big".bÂ·2 int, @"math/big".countÂ·3 int, @"math/big".errÂ·4 error)
+	func (@"math/big".zÂ·2 @"math/big".nat "esc:0x12") @"math/big".set (@"math/big".xÂ·3 @"math/big".nat "esc:0x9") (? @"math/big".nat)
+	func (@"math/big".zÂ·2 @"math/big".nat "esc:0x12") @"math/big".setBit (@"math/big".xÂ·3 @"math/big".nat "esc:0x9", @"math/big".iÂ·4 uint, @"math/big".bÂ·5 uint) (? @"math/big".nat)
+	func (@"math/big".zÂ·2 @"math/big".nat "esc:0x12") @"math/big".setBytes (@"math/big".bufÂ·3 []byte "esc:0x1") (? @"math/big".nat)
+	func (@"math/big".zÂ·2 @"math/big".nat "esc:0x12") @"math/big".setUint64 (@"math/big".xÂ·3 uint64) (? @"math/big".nat)
+	func (@"math/big".zÂ·2 @"math/big".nat "esc:0x12") @"math/big".setWord (@"math/big".xÂ·3 @"math/big".Word) (? @"math/big".nat)
+	func (@"math/big".zÂ·2 @"math/big".nat) @"math/big".shl (@"math/big".xÂ·3 @"math/big".nat, @"math/big".sÂ·4 uint) (? @"math/big".nat)
+	func (@"math/big".zÂ·2 @"math/big".nat) @"math/big".shr (@"math/big".xÂ·3 @"math/big".nat, @"math/big".sÂ·4 uint) (? @"math/big".nat)
+	func (@"math/big".xÂ·2 @"math/big".nat "esc:0x1") @"math/big".sticky (@"math/big".iÂ·3 uint) (? uint)
+	func (@"math/big".xÂ·2 @"math/big".nat "esc:0x9") @"math/big".string (@"math/big".charsetÂ·3 string "esc:0x1") (? string)
+	func (@"math/big".zÂ·2 @"math/big".nat) @"math/big".sub (@"math/big".xÂ·3 @"math/big".nat, @"math/big".yÂ·4 @"math/big".nat) (? @"math/big".nat)
+	func (@"math/big".xÂ·2 @"math/big".nat "esc:0x1") @"math/big".trailingZeroBits () (? uint)
+	func (@"math/big".zÂ·2 @"math/big".nat "esc:0x12") @"math/big".xor (@"math/big".xÂ·3 @"math/big".nat "esc:0x9", @"math/big".yÂ·4 @"math/big".nat "esc:0x9") (? @"math/big".nat)
+	import fmt "fmt" // indirect
+	type @"fmt".State interface { Flag(@"fmt".c int) (? bool); Precision() (@"fmt".prec int, @"fmt".ok bool); Width() (@"fmt".wid int, @"fmt".ok bool); Write(@"fmt".b []byte) (@"fmt".ret int, @"fmt".err error) }
+	type @"fmt".ScanState interface { Read(@"fmt".buf []byte) (@"fmt".n int, @"fmt".err error); ReadRune() (@"fmt".r rune, @"fmt".size int, @"fmt".err error); SkipSpace(); Token(@"fmt".skipSpace bool, @"fmt".f func(? rune) (? bool)) (@"fmt".token []byte, @"fmt".err error); UnreadRune() (? error); Width() (@"fmt".wid int, @"fmt".ok bool) }
+	type @"math/big".Int struct { @"math/big".neg bool; @"math/big".abs @"math/big".nat }
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") Abs (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") Add (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9", @"math/big".yÂ·4 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") And (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9", @"math/big".yÂ·4 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") AndNot (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9", @"math/big".yÂ·4 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") Binomial (@"math/big".nÂ·3 int64, @"math/big".kÂ·4 int64) (? *@"math/big".Int)
+	func (@"math/big".xÂ·2 *@"math/big".Int "esc:0x9") Bit (@"math/big".iÂ·3 int) (? uint)
+	func (@"math/big".xÂ·2 *@"math/big".Int "esc:0x1") BitLen () (? int)
+	func (@"math/big".xÂ·2 *@"math/big".Int "esc:0x22") Bits () (? []@"math/big".Word) { return @"math/big".xÂ·2.@"math/big".abs }
+	func (@"math/big".xÂ·2 *@"math/big".Int "esc:0x1") Bytes () (? []byte)
+	func (@"math/big".xÂ·2 *@"math/big".Int "esc:0x1") Cmp (@"math/big".yÂ·3 *@"math/big".Int "esc:0x1") (@"math/big".rÂ·1 int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") Div (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9", @"math/big".yÂ·4 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".zÂ·3 *@"math/big".Int "esc:0x1a") DivMod (@"math/big".xÂ·4 *@"math/big".Int "esc:0x9", @"math/big".yÂ·5 *@"math/big".Int "esc:0x9", @"math/big".mÂ·6 *@"math/big".Int "esc:0x8a") (? *@"math/big".Int, ? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") Exp (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9", @"math/big".yÂ·4 *@"math/big".Int "esc:0x1", @"math/big".mÂ·5 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".xÂ·1 *@"math/big".Int "esc:0x9") Format (@"math/big".sÂ·2 @"fmt".State, @"math/big".chÂ·3 rune)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") GCD (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9", @"math/big".yÂ·4 *@"math/big".Int "esc:0x9", @"math/big".aÂ·5 *@"math/big".Int "esc:0x9", @"math/big".bÂ·6 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x9") GobDecode (@"math/big".bufÂ·3 []byte "esc:0x1") (? error)
+	func (@"math/big".xÂ·3 *@"math/big".Int "esc:0x1") GobEncode () (? []byte, ? error)
+	func (@"math/big".xÂ·2 *@"math/big".Int "esc:0x1") Int64 () (? int64) { var @"math/big".vÂ·3 int64; ; @"math/big".vÂ·3 = int64(@"math/big".low64(@"math/big".xÂ·2.@"math/big".abs)); if @"math/big".xÂ·2.@"math/big".neg { @"math/big".vÂ·3 = -@"math/big".vÂ·3 }; return @"math/big".vÂ·3 }
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") Lsh (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9", @"math/big".nÂ·4 uint) (? *@"math/big".Int)
+	func (@"math/big".zÂ·3 *@"math/big".Int "esc:0x9") MarshalJSON () (? []byte, ? error)
+	func (@"math/big".zÂ·3 *@"math/big".Int "esc:0x9") MarshalText () (@"math/big".textÂ·1 []byte, @"math/big".errÂ·2 error)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") Mod (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9", @"math/big".yÂ·4 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") ModInverse (@"math/big".gÂ·3 *@"math/big".Int "esc:0x9", @"math/big".nÂ·4 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") ModSqrt (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9", @"math/big".pÂ·4 *@"math/big".Int) (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") Mul (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9", @"math/big".yÂ·4 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") MulRange (@"math/big".aÂ·3 int64, @"math/big".bÂ·4 int64) (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") Neg (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") Not (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") Or (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9", @"math/big".yÂ·4 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".xÂ·2 *@"math/big".Int "esc:0x9") ProbablyPrime (@"math/big".nÂ·3 int) (? bool)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") Quo (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9", @"math/big".yÂ·4 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".zÂ·3 *@"math/big".Int "esc:0x1a") QuoRem (@"math/big".xÂ·4 *@"math/big".Int "esc:0x9", @"math/big".yÂ·5 *@"math/big".Int "esc:0x9", @"math/big".rÂ·6 *@"math/big".Int "esc:0x8a") (? *@"math/big".Int, ? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") Rand (@"math/big".rndÂ·3 *@"math/rand".Rand "esc:0x9", @"math/big".nÂ·4 *@"math/big".Int "esc:0x1") (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") Rem (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9", @"math/big".yÂ·4 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") Rsh (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9", @"math/big".nÂ·4 uint) (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x9") Scan (@"math/big".sÂ·3 @"fmt".ScanState, @"math/big".chÂ·4 rune) (? error)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") Set (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") SetBit (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9", @"math/big".iÂ·4 int, @"math/big".bÂ·5 uint) (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x12") SetBits (@"math/big".absÂ·3 []@"math/big".Word) (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") SetBytes (@"math/big".bufÂ·3 []byte "esc:0x1") (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") SetInt64 (@"math/big".xÂ·3 int64) (? *@"math/big".Int)
+	func (@"math/big".zÂ·3 *@"math/big".Int "esc:0x1a") SetString (@"math/big".sÂ·4 string, @"math/big".baseÂ·5 int) (? *@"math/big".Int, ? bool)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") SetUint64 (@"math/big".xÂ·3 uint64) (? *@"math/big".Int)
+	func (@"math/big".xÂ·2 *@"math/big".Int "esc:0x1") Sign () (? int) { if len(@"math/big".xÂ·2.@"math/big".abs) == 0x0 { return 0x0 }; if @"math/big".xÂ·2.@"math/big".neg { return -0x1 }; return 0x1 }
+	func (@"math/big".xÂ·2 *@"math/big".Int "esc:0x9") String () (? string)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") Sub (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9", @"math/big".yÂ·4 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".xÂ·2 *@"math/big".Int "esc:0x1") Uint64 () (? uint64) { return @"math/big".low64(@"math/big".xÂ·2.@"math/big".abs) }
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x9") UnmarshalJSON (@"math/big".textÂ·3 []byte) (? error)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x9") UnmarshalText (@"math/big".textÂ·3 []byte) (? error)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") Xor (@"math/big".xÂ·3 *@"math/big".Int "esc:0x9", @"math/big".yÂ·4 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".zÂ·2 *@"math/big".Int "esc:0x1a") @"math/big".binaryGCD (@"math/big".aÂ·3 *@"math/big".Int "esc:0x9", @"math/big".bÂ·4 *@"math/big".Int "esc:0x9") (? *@"math/big".Int)
+	func (@"math/big".zÂ·4 *@"math/big".Int "esc:0x1a") @"math/big".scan (@"math/big".rÂ·5 @"io".ByteScanner, @"math/big".baseÂ·6 int) (? *@"math/big".Int, ? int, ? error)
+	import pkix "crypto/x509/pkix" // indirect
+	import asn1 "encoding/asn1" // indirect
+	type @"encoding/asn1".ObjectIdentifier []int
+	func (@"encoding/asn1".oiÂ·2 @"encoding/asn1".ObjectIdentifier "esc:0x1") Equal (@"encoding/asn1".otherÂ·3 @"encoding/asn1".ObjectIdentifier "esc:0x1") (? bool)
+	func (@"encoding/asn1".oiÂ·2 @"encoding/asn1".ObjectIdentifier "esc:0x1") String () (? string)
+	type @"crypto/x509/pkix".AttributeTypeAndValue struct { Type @"encoding/asn1".ObjectIdentifier; Value interface {} }
+	type @"crypto/x509/pkix".RelativeDistinguishedNameSET []@"crypto/x509/pkix".AttributeTypeAndValue
+	type @"crypto/x509/pkix".RDNSequence []@"crypto/x509/pkix".RelativeDistinguishedNameSET
+	type @"crypto/x509/pkix".Name struct { Country []string; Organization []string; OrganizationalUnit []string; Locality []string; Province []string; StreetAddress []string; PostalCode []string; SerialNumber string; CommonName string; Names []@"crypto/x509/pkix".AttributeTypeAndValue; ExtraNames []@"crypto/x509/pkix".AttributeTypeAndValue }
+	func (@"crypto/x509/pkix".nÂ·1 *@"crypto/x509/pkix".Name "esc:0x9") FillFromRDNSequence (@"crypto/x509/pkix".rdnsÂ·2 *@"crypto/x509/pkix".RDNSequence "esc:0x9")
+	func (@"crypto/x509/pkix".nÂ·2 @"crypto/x509/pkix".Name) ToRDNSequence () (@"crypto/x509/pkix".retÂ·1 @"crypto/x509/pkix".RDNSequence)
+	func (@"crypto/x509/pkix".nÂ·2 @"crypto/x509/pkix".Name "esc:0x1") @"crypto/x509/pkix".appendRDNs (@"crypto/x509/pkix".inÂ·3 @"crypto/x509/pkix".RDNSequence "esc:0x1a", @"crypto/x509/pkix".valuesÂ·4 []string "esc:0x9", @"crypto/x509/pkix".oidÂ·5 @"encoding/asn1".ObjectIdentifier) (? @"crypto/x509/pkix".RDNSequence)
+	import time "time" // indirect
+	type @"time".zone struct { @"time".name string; @"time".offset int; @"time".isDST bool }
+	type @"time".zoneTrans struct { @"time".when int64; @"time".index uint8; @"time".isstd bool; @"time".isutc bool }
+	type @"time".Location struct { @"time".name string; @"time".zone []@"time".zone; @"time".tx []@"time".zoneTrans; @"time".cacheStart int64; @"time".cacheEnd int64; @"time".cacheZone *@"time".zone }
+	func (@"time".lÂ·2 *@"time".Location "esc:0x22") String () (? string)
+	func (@"time".lÂ·2 *@"time".Location "esc:0x1") @"time".firstZoneUsed () (? bool)
+	func (@"time".lÂ·2 *@"time".Location "esc:0x12") @"time".get () (? *@"time".Location)
+	func (@"time".lÂ·6 *@"time".Location "esc:0x32") @"time".lookup (@"time".secÂ·7 int64) (@"time".nameÂ·1 string, @"time".offsetÂ·2 int, @"time".isDSTÂ·3 bool, @"time".startÂ·4 int64, @"time".endÂ·5 int64)
+	func (@"time".lÂ·2 *@"time".Location "esc:0x1") @"time".lookupFirstZone () (? int)
+	func (@"time".lÂ·4 *@"time".Location "esc:0x1") @"time".lookupName (@"time".nameÂ·5 string "esc:0x1", @"time".unixÂ·6 int64) (@"time".offsetÂ·1 int, @"time".isDSTÂ·2 bool, @"time".okÂ·3 bool)
+	type @"time".Duration int64
+	func (@"time".dÂ·2 @"time".Duration) Hours () (? float64) { var @"time".hourÂ·3 @"time".Duration; ; @"time".hourÂ·3 = @"time".dÂ·2 / @"time".Duration(0x34630b8a000); var @"time".nsecÂ·4 @"time".Duration; ; @"time".nsecÂ·4 = @"time".dÂ·2 % @"time".Duration(0x34630b8a000); return float64(@"time".hourÂ·3) + float64(@"time".nsecÂ·4) * 8190022623310637111963488201822504381538623676021880892417778544696899264837610290203272971060556344039023584360473938041055625214280336402169897364226048p-553 }
+	func (@"time".dÂ·2 @"time".Duration) Minutes () (? float64) { var @"time".minÂ·3 @"time".Duration; ; @"time".minÂ·3 = @"time".dÂ·2 / @"time".Duration(0xdf8475800); var @"time".nsecÂ·4 @"time".Duration; ; @"time".nsecÂ·4 = @"time".dÂ·2 % @"time".Duration(0xdf8475800); return float64(@"time".minÂ·3) + float64(@"time".nsecÂ·4) * 7678146209353722106395056769533233877065564876941352542109479049699919628723768656821910653339403201031675627614471533358284117434246264392176261853609984p-547 }
+	func (@"time".dÂ·2 @"time".Duration) Nanoseconds () (? int64) { return int64(@"time".dÂ·2) }
+	func (@"time".dÂ·2 @"time".Duration) Seconds () (? float64) { var @"time".secÂ·3 @"time".Duration; ; @"time".secÂ·3 = @"time".dÂ·2 / @"time".Duration(0x3b9aca00); var @"time".nsecÂ·4 @"time".Duration; ; @"time".nsecÂ·4 = @"time".dÂ·2 % @"time".Duration(0x3b9aca00); return float64(@"time".secÂ·3) + float64(@"time".nsecÂ·4) * 7198262071269114660816079141112770740375861891461678802759824945047098083990024106014198994535558872472104883612039846078596891298747423852523262413111296p-541 }
+	func (@"time".dÂ·2 @"time".Duration) String () (? string)
+	type @"time".Month int
+	func (@"time".mÂ·2 @"time".Month) String () (? string) { return @"time".months[@"time".mÂ·2 - @"time".Month(0x1)] }
+	type @"time".Weekday int
+	func (@"time".dÂ·2 @"time".Weekday) String () (? string) { return @"time".days[@"time".dÂ·2] }
+	type @"time".Time struct { @"time".sec int64; @"time".nsec int32; @"time".loc *@"time".Location }
+	func (@"time".tÂ·2 @"time".Time "esc:0x12") Add (@"time".dÂ·3 @"time".Duration) (? @"time".Time) { @"time".tÂ·2.@"time".sec += int64(@"time".dÂ·3 / @"time".Duration(0x3b9aca00)); var @"time".nsecÂ·4 int32; ; @"time".nsecÂ·4 = int32(@"time".tÂ·2.@"time".nsec) + int32(@"time".dÂ·3 % @"time".Duration(0x3b9aca00)); if @"time".nsecÂ·4 >= 0x3b9aca00 { @"time".tÂ·2.@"time".sec++; @"time".nsecÂ·4 -= 0x3b9aca00 } else { if @"time".nsecÂ·4 < 0x0 { @"time".tÂ·2.@"time".sec--; @"time".nsecÂ·4 += 0x3b9aca00 } }; @"time".tÂ·2.@"time".nsec = @"time".nsecÂ·4; return @"time".tÂ·2 }
+	func (@"time".tÂ·2 @"time".Time "esc:0x12") AddDate (@"time".yearsÂ·3 int, @"time".monthsÂ·4 int, @"time".daysÂ·5 int) (? @"time".Time)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") After (@"time".uÂ·3 @"time".Time "esc:0x1") (? bool) { return @"time".tÂ·2.@"time".sec > @"time".uÂ·3.@"time".sec || @"time".tÂ·2.@"time".sec == @"time".uÂ·3.@"time".sec && @"time".tÂ·2.@"time".nsec > @"time".uÂ·3.@"time".nsec }
+	func (@"time".tÂ·2 @"time".Time "esc:0x9") AppendFormat (@"time".bÂ·3 []byte "esc:0x1a", @"time".layoutÂ·4 string "esc:0x9") (? []byte)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Before (@"time".uÂ·3 @"time".Time "esc:0x1") (? bool) { return @"time".tÂ·2.@"time".sec < @"time".uÂ·3.@"time".sec || @"time".tÂ·2.@"time".sec == @"time".uÂ·3.@"time".sec && @"time".tÂ·2.@"time".nsec < @"time".uÂ·3.@"time".nsec }
+	func (@"time".tÂ·4 @"time".Time "esc:0x1") Clock () (@"time".hourÂ·1 int, @"time".minÂ·2 int, @"time".secÂ·3 int)
+	func (@"time".tÂ·4 @"time".Time "esc:0x1") Date () (@"time".yearÂ·1 int, @"time".monthÂ·2 @"time".Month, @"time".dayÂ·3 int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Day () (? int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Equal (@"time".uÂ·3 @"time".Time "esc:0x1") (? bool) { return @"time".tÂ·2.@"time".sec == @"time".uÂ·3.@"time".sec && @"time".tÂ·2.@"time".nsec == @"time".uÂ·3.@"time".nsec }
+	func (@"time".tÂ·2 @"time".Time "esc:0x9") Format (@"time".layoutÂ·3 string "esc:0x9") (? string)
+	func (@"time".tÂ·2 *@"time".Time "esc:0x1") GobDecode (@"time".dataÂ·3 []byte "esc:0x1") (? error)
+	func (@"time".tÂ·3 @"time".Time "esc:0x1") GobEncode () (? []byte, ? error)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Hour () (? int)
+	func (@"time".tÂ·3 @"time".Time "esc:0x1") ISOWeek () (@"time".yearÂ·1 int, @"time".weekÂ·2 int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x12") In (@"time".locÂ·3 *@"time".Location "esc:0x12") (? @"time".Time)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") IsZero () (? bool) { return @"time".tÂ·2.@"time".sec == 0x0 && @"time".tÂ·2.@"time".nsec == 0x0 }
+	func (@"time".tÂ·2 @"time".Time "esc:0x12") Local () (? @"time".Time) { @"time".tÂ·2.@"time".loc = @"time".Local; return @"time".tÂ·2 }
+	func (@"time".tÂ·2 @"time".Time "esc:0x12") Location () (? *@"time".Location) { var @"time".lÂ·3 *@"time".Location; ; @"time".lÂ·3 = @"time".tÂ·2.@"time".loc; if @"time".lÂ·3 == nil { @"time".lÂ·3 = @"time".UTC }; return @"time".lÂ·3 }
+	func (@"time".tÂ·3 @"time".Time "esc:0x1") MarshalBinary () (? []byte, ? error)
+	func (@"time".tÂ·3 @"time".Time "esc:0x9") MarshalJSON () (? []byte, ? error)
+	func (@"time".tÂ·3 @"time".Time "esc:0x9") MarshalText () (? []byte, ? error)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Minute () (? int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Month () (? @"time".Month)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Nanosecond () (? int) { return int(@"time".tÂ·2.@"time".nsec) }
+	func (@"time".tÂ·2 @"time".Time "esc:0x12") Round (@"time".dÂ·3 @"time".Duration) (? @"time".Time)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Second () (? int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x9") String () (? string)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Sub (@"time".uÂ·3 @"time".Time "esc:0x1") (? @"time".Duration)
+	func (@"time".tÂ·2 @"time".Time "esc:0x12") Truncate (@"time".dÂ·3 @"time".Duration) (? @"time".Time)
+	func (@"time".tÂ·2 @"time".Time "esc:0x12") UTC () (? @"time".Time) { @"time".tÂ·2.@"time".loc = @"time".UTC; return @"time".tÂ·2 }
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Unix () (? int64) { return @"time".tÂ·2.@"time".sec + -0xe7791f700 }
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") UnixNano () (? int64) { return (@"time".tÂ·2.@"time".sec + -0xe7791f700) * 0x3b9aca00 + int64(@"time".tÂ·2.@"time".nsec) }
+	func (@"time".tÂ·2 *@"time".Time "esc:0x1") UnmarshalBinary (@"time".dataÂ·3 []byte "esc:0x1") (? error)
+	func (@"time".tÂ·2 *@"time".Time "esc:0x1") UnmarshalJSON (@"time".dataÂ·3 []byte "esc:0x1") (@"time".errÂ·1 error)
+	func (@"time".tÂ·2 *@"time".Time "esc:0x1") UnmarshalText (@"time".dataÂ·3 []byte "esc:0x1") (@"time".errÂ·1 error)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Weekday () (? @"time".Weekday)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Year () (? int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") YearDay () (? int)
+	func (@"time".tÂ·3 @"time".Time "esc:0x32") Zone () (@"time".nameÂ·1 string, @"time".offsetÂ·2 int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") @"time".abs () (? uint64)
+	func (@"time".tÂ·5 @"time".Time "esc:0x1") @"time".date (@"time".fullÂ·6 bool) (@"time".yearÂ·1 int, @"time".monthÂ·2 @"time".Month, @"time".dayÂ·3 int, @"time".ydayÂ·4 int)
+	func (@"time".tÂ·4 @"time".Time "esc:0x32") @"time".locabs () (@"time".nameÂ·1 string, @"time".offsetÂ·2 int, @"time".absÂ·3 uint64)
+	type @"crypto/x509".KeyUsage int
+	type @"crypto/x509/pkix".Extension struct { Id @"encoding/asn1".ObjectIdentifier; Critical bool "asn1:\"optional\""; Value []byte }
+	type @"crypto/x509".ExtKeyUsage int
+	import net "net" // indirect
+	type @"net".IPMask []byte
+	func (@"net".mÂ·3 @"net".IPMask "esc:0x1") Size () (@"net".onesÂ·1 int, @"net".bitsÂ·2 int)
+	func (@"net".mÂ·2 @"net".IPMask "esc:0x1") String () (? string)
+	type @"net".IP []byte
+	func (@"net".ipÂ·2 @"net".IP "esc:0x1") DefaultMask () (? @"net".IPMask)
+	func (@"net".ipÂ·2 @"net".IP "esc:0x1") Equal (@"net".xÂ·3 @"net".IP "esc:0x1") (? bool)
+	func (@"net".ipÂ·2 @"net".IP "esc:0x1") IsGlobalUnicast () (? bool)
+	func (@"net".ipÂ·2 @"net".IP "esc:0x1") IsInterfaceLocalMulticast () (? bool) { return len(@"net".ipÂ·2) == 0x10 && @"net".ipÂ·2[0x0] == byte(0xff) && @"net".ipÂ·2[0x1] & byte(0xf) == byte(0x1) }
+	func (@"net".ipÂ·2 @"net".IP "esc:0x1") IsLinkLocalMulticast () (? bool)
+	func (@"net".ipÂ·2 @"net".IP "esc:0x1") IsLinkLocalUnicast () (? bool)
+	func (@"net".ipÂ·2 @"net".IP "esc:0x1") IsLoopback () (? bool)
+	func (@"net".ipÂ·2 @"net".IP "esc:0x1") IsMulticast () (? bool)
+	func (@"net".ipÂ·2 @"net".IP "esc:0x1") IsUnspecified () (? bool)
+	func (@"net".ipÂ·3 @"net".IP "esc:0x1") MarshalText () (? []byte, ? error)
+	func (@"net".ipÂ·2 @"net".IP "esc:0x1") Mask (@"net".maskÂ·3 @"net".IPMask "esc:0x1") (? @"net".IP)
+	func (@"net".ipÂ·2 @"net".IP "esc:0x1") String () (? string)
+	func (@"net".ipÂ·2 @"net".IP "esc:0x12") To16 () (? @"net".IP) { if len(@"net".ipÂ·2) == 0x4 { return @"net".IPv4(@"net".ipÂ·2[0x0], @"net".ipÂ·2[0x1], @"net".ipÂ·2[0x2], @"net".ipÂ·2[0x3]) }; if len(@"net".ipÂ·2) == 0x10 { return @"net".ipÂ·2 }; return nil }
+	func (@"net".ipÂ·2 @"net".IP "esc:0x12") To4 () (? @"net".IP)
+	func (@"net".ipÂ·2 *@"net".IP "esc:0x1") UnmarshalText (@"net".textÂ·3 []byte "esc:0x1") (? error)
+	type @"encoding/asn1".RawContent []byte
+	type @"encoding/asn1".RawValue struct { Class int; Tag int; IsCompound bool; Bytes []byte; FullBytes []byte }
+	type @"crypto/x509/pkix".AlgorithmIdentifier struct { Algorithm @"encoding/asn1".ObjectIdentifier; Parameters @"encoding/asn1".RawValue "asn1:\"optional\"" }
+	type @"crypto/x509/pkix".RevokedCertificate struct { SerialNumber *@"math/big".Int; RevocationTime @"time".Time; Extensions []@"crypto/x509/pkix".Extension "asn1:\"optional\"" }
+	type @"crypto/x509/pkix".TBSCertificateList struct { Raw @"encoding/asn1".RawContent; Version int "asn1:\"optional,default:1\""; Signature @"crypto/x509/pkix".AlgorithmIdentifier; Issuer @"crypto/x509/pkix".RDNSequence; ThisUpdate @"time".Time; NextUpdate @"time".Time "asn1:\"optional\""; RevokedCertificates []@"crypto/x509/pkix".RevokedCertificate "asn1:\"optional\""; Extensions []@"crypto/x509/pkix".Extension "asn1:\"tag:0,optional,explicit\"" }
+	type @"encoding/asn1".BitString struct { Bytes []byte; BitLength int }
+	func (@"encoding/asn1".bÂ·2 @"encoding/asn1".BitString "esc:0x1") At (@"encoding/asn1".iÂ·3 int) (? int) { if @"encoding/asn1".iÂ·3 < 0x0 || @"encoding/asn1".iÂ·3 >= @"encoding/asn1".bÂ·2.BitLength { return 0x0 }; var @"encoding/asn1".xÂ·4 int; ; @"encoding/asn1".xÂ·4 = @"encoding/asn1".iÂ·3 / 0x8; var @"encoding/asn1".yÂ·5 uint; ; @"encoding/asn1".yÂ·5 = 0x7 - uint(@"encoding/asn1".iÂ·3 % 0x8); return int(@"encoding/asn1".bÂ·2.Bytes[@"encoding/asn1".xÂ·4] >> @"encoding/asn1".yÂ·5) & 0x1 }
+	func (@"encoding/asn1".bÂ·2 @"encoding/asn1".BitString "esc:0x12") RightAlign () (? []byte)
+	type @"crypto/x509/pkix".CertificateList struct { TBSCertList @"crypto/x509/pkix".TBSCertificateList; SignatureAlgorithm @"crypto/x509/pkix".AlgorithmIdentifier; SignatureValue @"encoding/asn1".BitString }
+	func (@"crypto/x509/pkix".certListÂ·2 *@"crypto/x509/pkix".CertificateList "esc:0x1") HasExpired (@"crypto/x509/pkix".nowÂ·3 @"time".Time "esc:0x1") (? bool) { return @"crypto/x509/pkix".nowÂ·3.After(@"crypto/x509/pkix".certListÂ·2.TBSCertList.NextUpdate) }
+	type @"io".Reader interface { Read(@"io".p []byte) (@"io".n int, @"io".err error) }
+	type @"crypto/x509".CertPool struct { @"crypto/x509".bySubjectKeyId map[string][]int; @"crypto/x509".byName map[string][]int; @"crypto/x509".certs []*@"crypto/x509".Certificate }
+	func (@"crypto/x509".sÂ·1 *@"crypto/x509".CertPool "esc:0x9") AddCert (@"crypto/x509".certÂ·2 *@"crypto/x509".Certificate)
+	func (@"crypto/x509".sÂ·2 *@"crypto/x509".CertPool "esc:0x9") AppendCertsFromPEM (@"crypto/x509".pemCertsÂ·3 []byte) (@"crypto/x509".okÂ·1 bool)
+	func (@"crypto/x509".sÂ·2 *@"crypto/x509".CertPool "esc:0x9") Subjects () (@"crypto/x509".resÂ·1 [][]byte)
+	func (@"crypto/x509".sÂ·4 *@"crypto/x509".CertPool "esc:0x18a") @"crypto/x509".findVerifiedParents (@"crypto/x509".certÂ·5 *@"crypto/x509".Certificate "esc:0x9") (@"crypto/x509".parentsÂ·1 []int, @"crypto/x509".errCertÂ·2 *@"crypto/x509".Certificate, @"crypto/x509".errÂ·3 error)
+	type @"crypto/x509".VerifyOptions struct { DNSName string; Intermediates *@"crypto/x509".CertPool; Roots *@"crypto/x509".CertPool; CurrentTime @"time".Time; KeyUsages []@"crypto/x509".ExtKeyUsage }
+	type @"crypto/x509".Certificate struct { Raw []byte; RawTBSCertificate []byte; RawSubjectPublicKeyInfo []byte; RawSubject []byte; RawIssuer []byte; Signature []byte; SignatureAlgorithm @"crypto/x509".SignatureAlgorithm; PublicKeyAlgorithm @"crypto/x509".PublicKeyAlgorithm; PublicKey interface {}; Version int; SerialNumber *@"math/big".Int; Issuer @"crypto/x509/pkix".Name; Subject @"crypto/x509/pkix".Name; NotBefore @"time".Time; NotAfter @"time".Time; KeyUsage @"crypto/x509".KeyUsage; Extensions []@"crypto/x509/pkix".Extension; ExtraExtensions []@"crypto/x509/pkix".Extension; UnhandledCriticalExtensions []@"encoding/asn1".ObjectIdentifier; ExtKeyUsage []@"crypto/x509".ExtKeyUsage; UnknownExtKeyUsage []@"encoding/asn1".ObjectIdentifier; BasicConstraintsValid bool; IsCA bool; MaxPathLen int; MaxPathLenZero bool; SubjectKeyId []byte; AuthorityKeyId []byte; OCSPServer []string; IssuingCertificateURL []string; DNSNames []string; EmailAddresses []string; IPAddresses []@"net".IP; PermittedDNSDomainsCritical bool; PermittedDNSDomains []string; CRLDistributionPoints []string; PolicyIdentifiers []@"encoding/asn1".ObjectIdentifier }
+	func (@"crypto/x509".cÂ·2 *@"crypto/x509".Certificate "esc:0x9") CheckCRLSignature (@"crypto/x509".crlÂ·3 *@"crypto/x509/pkix".CertificateList "esc:0x9") (@"crypto/x509".errÂ·1 error)
+	func (@"crypto/x509".cÂ·2 *@"crypto/x509".Certificate "esc:0x9") CheckSignature (@"crypto/x509".algoÂ·3 @"crypto/x509".SignatureAlgorithm, @"crypto/x509".signedÂ·4 []byte, @"crypto/x509".signatureÂ·5 []byte) (@"crypto/x509".errÂ·1 error)
+	func (@"crypto/x509".cÂ·2 *@"crypto/x509".Certificate "esc:0x9") CheckSignatureFrom (@"crypto/x509".parentÂ·3 *@"crypto/x509".Certificate "esc:0x9") (@"crypto/x509".errÂ·1 error)
+	func (@"crypto/x509".cÂ·3 *@"crypto/x509".Certificate "esc:0x9") CreateCRL (@"crypto/x509".randÂ·4 @"io".Reader, @"crypto/x509".privÂ·5 interface {}, @"crypto/x509".revokedCertsÂ·6 []@"crypto/x509/pkix".RevokedCertificate, @"crypto/x509".nowÂ·7 @"time".Time, @"crypto/x509".expiryÂ·8 @"time".Time) (@"crypto/x509".crlBytesÂ·1 []byte, @"crypto/x509".errÂ·2 error)
+	func (@"crypto/x509".cÂ·2 *@"crypto/x509".Certificate "esc:0x1") Equal (@"crypto/x509".otherÂ·3 *@"crypto/x509".Certificate "esc:0x1") (? bool)
+	func (@"crypto/x509".cÂ·3 *@"crypto/x509".Certificate) Verify (@"crypto/x509".optsÂ·4 @"crypto/x509".VerifyOptions) (@"crypto/x509".chainsÂ·1 [][]*@"crypto/x509".Certificate, @"crypto/x509".errÂ·2 error)
+	func (@"crypto/x509".cÂ·2 *@"crypto/x509".Certificate "esc:0x1a") VerifyHostname (@"crypto/x509".hÂ·3 string) (? error)
+	func (@"crypto/x509".cÂ·3 *@"crypto/x509".Certificate) @"crypto/x509".buildChains (@"crypto/x509".cacheÂ·4 map[int][][]*@"crypto/x509".Certificate "esc:0x1", @"crypto/x509".currentChainÂ·5 []*@"crypto/x509".Certificate "esc:0x9", @"crypto/x509".optsÂ·6 *@"crypto/x509".VerifyOptions "esc:0x20a") (@"crypto/x509".chainsÂ·1 [][]*@"crypto/x509".Certificate, @"crypto/x509".errÂ·2 error)
+	func (@"crypto/x509".cÂ·2 *@"crypto/x509".Certificate "esc:0x12") @"crypto/x509".isValid (@"crypto/x509".certTypeÂ·3 int, @"crypto/x509".currentChainÂ·4 []*@"crypto/x509".Certificate "esc:0x1", @"crypto/x509".optsÂ·5 *@"crypto/x509".VerifyOptions "esc:0x1") (? error)
+	func (@"crypto/x509".cÂ·3 *@"crypto/x509".Certificate "esc:0x1") @"crypto/x509".systemVerify (@"crypto/x509".optsÂ·4 *@"crypto/x509".VerifyOptions "esc:0x1") (@"crypto/x509".chainsÂ·1 [][]*@"crypto/x509".Certificate, @"crypto/x509".errÂ·2 error) { return nil, nil }
+	type @"crypto/tls".ConnectionState struct { Version uint16; HandshakeComplete bool; DidResume bool; CipherSuite uint16; NegotiatedProtocol string; NegotiatedProtocolIsMutual bool; ServerName string; PeerCertificates []*@"crypto/x509".Certificate; VerifiedChains [][]*@"crypto/x509".Certificate; SignedCertificateTimestamps [][]byte; OCSPResponse []byte; TLSUnique []byte }
+	type @"net/http".Cookie struct { Name string; Value string; Path string; Domain string; Expires @"time".Time; RawExpires string; MaxAge int; Secure bool; HttpOnly bool; Raw string; Unparsed []string }
+	func (@"net/http".cÂ·2 *@"net/http".Cookie "esc:0x9") String () (? string)
+	import bufio "bufio" // indirect
+	type @"bufio".Reader struct { @"bufio".buf []byte; @"bufio".rd @"io".Reader; @"bufio".r int; @"bufio".w int; @"bufio".err error; @"bufio".lastByte int; @"bufio".lastRuneSize int }
+	func (@"bufio".bÂ·2 *@"bufio".Reader "esc:0x1") Buffered () (? int) { return @"bufio".bÂ·2.@"bufio".w - @"bufio".bÂ·2.@"bufio".r }
+	func (@"bufio".bÂ·3 *@"bufio".Reader "esc:0x10a") Discard (@"bufio".nÂ·4 int) (@"bufio".discardedÂ·1 int, @"bufio".errÂ·2 error)
+	func (@"bufio".bÂ·3 *@"bufio".Reader "esc:0x12a") Peek (@"bufio".nÂ·4 int) (? []byte, ? error)
+	func (@"bufio".bÂ·3 *@"bufio".Reader "esc:0x10a") Read (@"bufio".pÂ·4 []byte) (@"bufio".nÂ·1 int, @"bufio".errÂ·2 error)
+	func (@"bufio".bÂ·3 *@"bufio".Reader "esc:0x10a") ReadByte () (@"bufio".cÂ·1 byte, @"bufio".errÂ·2 error)
+	func (@"bufio".bÂ·3 *@"bufio".Reader "esc:0x10a") ReadBytes (@"bufio".delimÂ·4 byte) (@"bufio".lineÂ·1 []byte, @"bufio".errÂ·2 error)
+	func (@"bufio".bÂ·4 *@"bufio".Reader "esc:0x82a") ReadLine () (@"bufio".lineÂ·1 []byte, @"bufio".isPrefixÂ·2 bool, @"bufio".errÂ·3 error)
+	func (@"bufio".bÂ·4 *@"bufio".Reader "esc:0x80a") ReadRune () (@"bufio".rÂ·1 rune, @"bufio".sizeÂ·2 int, @"bufio".errÂ·3 error)
+	func (@"bufio".bÂ·3 *@"bufio".Reader "esc:0x12a") ReadSlice (@"bufio".delimÂ·4 byte) (@"bufio".lineÂ·1 []byte, @"bufio".errÂ·2 error)
+	func (@"bufio".bÂ·3 *@"bufio".Reader "esc:0x10a") ReadString (@"bufio".delimÂ·4 byte) (@"bufio".lineÂ·1 string, @"bufio".errÂ·2 error)
+	func (@"bufio".bÂ·1 *@"bufio".Reader "esc:0x9") Reset (@"bufio".rÂ·2 @"io".Reader) { @"bufio".bÂ·1.@"bufio".reset(@"bufio".bÂ·1.@"bufio".buf, @"bufio".rÂ·2) }
+	func (@"bufio".bÂ·2 *@"bufio".Reader "esc:0x1") UnreadByte () (? error) { if @"bufio".bÂ·2.@"bufio".lastByte < 0x0 || @"bufio".bÂ·2.@"bufio".r == 0x0 && @"bufio".bÂ·2.@"bufio".w > 0x0 { return @"bufio".ErrInvalidUnreadByte }; if @"bufio".bÂ·2.@"bufio".r > 0x0 { @"bufio".bÂ·2.@"bufio".r-- } else { @"bufio".bÂ·2.@"bufio".w = 0x1 }; @"bufio".bÂ·2.@"bufio".buf[@"bufio".bÂ·2.@"bufio".r] = byte(@"bufio".bÂ·2.@"bufio".lastByte); @"bufio".bÂ·2.@"bufio".lastByte = -0x1; @"bufio".bÂ·2.@"bufio".lastRuneSize = -0x1; return nil }
+	func (@"bufio".bÂ·2 *@"bufio".Reader "esc:0x1") UnreadRune () (? error) { if @"bufio".bÂ·2.@"bufio".lastRuneSize < 0x0 || @"bufio".bÂ·2.@"bufio".r < @"bufio".bÂ·2.@"bufio".lastRuneSize { return @"bufio".ErrInvalidUnreadRune }; @"bufio".bÂ·2.@"bufio".r -= @"bufio".bÂ·2.@"bufio".lastRuneSize; @"bufio".bÂ·2.@"bufio".lastByte = -0x1; @"bufio".bÂ·2.@"bufio".lastRuneSize = -0x1; return nil }
+	func (@"bufio".bÂ·3 *@"bufio".Reader "esc:0x10a") WriteTo (@"bufio".wÂ·4 @"io".Writer) (@"bufio".nÂ·1 int64, @"bufio".errÂ·2 error)
+	func (@"bufio".bÂ·1 *@"bufio".Reader "esc:0x9") @"bufio".fill ()
+	func (@"bufio".bÂ·2 *@"bufio".Reader "esc:0x22") @"bufio".readErr () (? error) { var @"bufio".errÂ·3 error; ; @"bufio".errÂ·3 = @"bufio".bÂ·2.@"bufio".err; @"bufio".bÂ·2.@"bufio".err = nil; return @"bufio".errÂ·3 }
+	func (@"bufio".bÂ·1 *@"bufio".Reader "esc:0x1") @"bufio".reset (@"bufio".bufÂ·2 []byte, @"bufio".rÂ·3 @"io".Reader) { *@"bufio".bÂ·1 = (@"bufio".Reader{ @"bufio".buf:@"bufio".bufÂ·2, @"bufio".rd:@"bufio".rÂ·3, @"bufio".lastByte:-0x1, @"bufio".lastRuneSize:-0x1 }) }
+	func (@"bufio".bÂ·3 *@"bufio".Reader "esc:0x9") @"bufio".writeBuf (@"bufio".wÂ·4 @"io".Writer) (? int64, ? error)
+	import bytes "bytes" // indirect
+	type @"bytes".readOp int
+	type @"bytes".Buffer struct { @"bytes".buf []byte; @"bytes".off int; @"bytes".runeBytes [4]byte; @"bytes".bootstrap [64]byte; @"bytes".lastRead @"bytes".readOp }
+	func (@"bytes".bÂ·2 *@"bytes".Buffer "esc:0x22") Bytes () (? []byte) { return @"bytes".bÂ·2.@"bytes".buf[@"bytes".bÂ·2.@"bytes".off:] }
+	func (@"bytes".bÂ·2 *@"bytes".Buffer "esc:0x1") Cap () (? int) { return cap(@"bytes".bÂ·2.@"bytes".buf) }
+	func (@"bytes".bÂ·1 *@"bytes".Buffer) Grow (@"bytes".nÂ·2 int)
+	func (@"bytes".bÂ·2 *@"bytes".Buffer "esc:0x1") Len () (? int) { return len(@"bytes".bÂ·2.@"bytes".buf) - @"bytes".bÂ·2.@"bytes".off }
+	func (@"bytes".bÂ·2 *@"bytes".Buffer "esc:0x22") Next (@"bytes".nÂ·3 int) (? []byte) { @"bytes".bÂ·2.@"bytes".lastRead = @"bytes".readOp(0x0); var @"bytes".mÂ·4 int; ; @"bytes".mÂ·4 = @"bytes".bÂ·2.Len(); if @"bytes".nÂ·3 > @"bytes".mÂ·4 { @"bytes".nÂ·3 = @"bytes".mÂ·4 }; var @"bytes".dataÂ·5 []byte; ; @"bytes".dataÂ·5 = @"bytes".bÂ·2.@"bytes".buf[@"bytes".bÂ·2.@"bytes".off:@"bytes".bÂ·2.@"bytes".off + @"bytes".nÂ·3]; @"bytes".bÂ·2.@"bytes".off += @"bytes".nÂ·3; if @"bytes".nÂ·3 > 0x0 { @"bytes".bÂ·2.@"bytes".lastRead = @"bytes".readOp(0x2) }; return @"bytes".dataÂ·5 }
+	func (@"bytes".bÂ·3 *@"bytes".Buffer "esc:0x9") Read (@"bytes".pÂ·4 []byte "esc:0x1") (@"bytes".nÂ·1 int, @"bytes".errÂ·2 error)
+	func (@"bytes".bÂ·3 *@"bytes".Buffer "esc:0x1") ReadByte () (@"bytes".cÂ·1 byte, @"bytes".errÂ·2 error)
+	func (@"bytes".bÂ·3 *@"bytes".Buffer "esc:0x9") ReadBytes (@"bytes".delimÂ·4 byte) (@"bytes".lineÂ·1 []byte, @"bytes".errÂ·2 error)
+	func (@"bytes".bÂ·3 *@"bytes".Buffer "esc:0x9") ReadFrom (@"bytes".rÂ·4 @"io".Reader) (@"bytes".nÂ·1 int64, @"bytes".errÂ·2 error)
+	func (@"bytes".bÂ·4 *@"bytes".Buffer "esc:0x1") ReadRune () (@"bytes".rÂ·1 rune, @"bytes".sizeÂ·2 int, @"bytes".errÂ·3 error)
+	func (@"bytes".bÂ·3 *@"bytes".Buffer "esc:0x1") ReadString (@"bytes".delimÂ·4 byte) (@"bytes".lineÂ·1 string, @"bytes".errÂ·2 error)
+	func (@"bytes".bÂ·1 *@"bytes".Buffer "esc:0x1") Reset ()
+	func (@"bytes".bÂ·2 *@"bytes".Buffer "esc:0x1") String () (? string) { if @"bytes".bÂ·2 == nil { return "<nil>" }; return string(@"bytes".bÂ·2.@"bytes".buf[@"bytes".bÂ·2.@"bytes".off:]) }
+	func (@"bytes".bÂ·1 *@"bytes".Buffer "esc:0x1") Truncate (@"bytes".nÂ·2 int)
+	func (@"bytes".bÂ·2 *@"bytes".Buffer "esc:0x1") UnreadByte () (? error) { if @"bytes".bÂ·2.@"bytes".lastRead != @"bytes".readOp(0x1) && @"bytes".bÂ·2.@"bytes".lastRead != @"bytes".readOp(0x2) { return @"errors".New("bytes.Buffer: UnreadByte: previous operation was not a read") }; @"bytes".bÂ·2.@"bytes".lastRead = @"bytes".readOp(0x0); if @"bytes".bÂ·2.@"bytes".off > 0x0 { @"bytes".bÂ·2.@"bytes".off-- }; return nil }
+	func (@"bytes".bÂ·2 *@"bytes".Buffer "esc:0x1") UnreadRune () (? error)
+	func (@"bytes".bÂ·3 *@"bytes".Buffer) Write (@"bytes".pÂ·4 []byte "esc:0x9") (@"bytes".nÂ·1 int, @"bytes".errÂ·2 error)
+	func (@"bytes".bÂ·2 *@"bytes".Buffer) WriteByte (@"bytes".cÂ·3 byte) (? error)
+	func (@"bytes".bÂ·3 *@"bytes".Buffer) WriteRune (@"bytes".rÂ·4 rune) (@"bytes".nÂ·1 int, @"bytes".errÂ·2 error)
+	func (@"bytes".bÂ·3 *@"bytes".Buffer) WriteString (@"bytes".sÂ·4 string "esc:0x9") (@"bytes".nÂ·1 int, @"bytes".errÂ·2 error)
+	func (@"bytes".bÂ·3 *@"bytes".Buffer "esc:0x9") WriteTo (@"bytes".wÂ·4 @"io".Writer) (@"bytes".nÂ·1 int64, @"bytes".errÂ·2 error)
+	func (@"bytes".bÂ·2 *@"bytes".Buffer) @"bytes".grow (@"bytes".nÂ·3 int) (? int)
+	func (@"bytes".bÂ·3 *@"bytes".Buffer "esc:0x22") @"bytes".readSlice (@"bytes".delimÂ·4 byte) (@"bytes".lineÂ·1 []byte, @"bytes".errÂ·2 error)
+	type @"mime/multipart".Part struct { Header @"net/textproto".MIMEHeader; @"mime/multipart".buffer *@"bytes".Buffer; @"mime/multipart".mr *@"mime/multipart".Reader; @"mime/multipart".bytesRead int; @"mime/multipart".disposition string; @"mime/multipart".dispositionParams map[string]string; @"mime/multipart".r @"io".Reader }
+	func (@"mime/multipart".pÂ·2 *@"mime/multipart".Part) Close () (? error)
+	func (@"mime/multipart".pÂ·2 *@"mime/multipart".Part "esc:0x1") FileName () (? string)
+	func (@"mime/multipart".pÂ·2 *@"mime/multipart".Part "esc:0x1") FormName () (? string)
+	func (@"mime/multipart".pÂ·3 *@"mime/multipart".Part "esc:0x9") Read (@"mime/multipart".dÂ·4 []byte) (@"mime/multipart".nÂ·1 int, @"mime/multipart".errÂ·2 error)
+	func (@"mime/multipart".pÂ·1 *@"mime/multipart".Part "esc:0x1") @"mime/multipart".parseContentDisposition ()
+	func (@"mime/multipart".bpÂ·2 *@"mime/multipart".Part "esc:0x4a") @"mime/multipart".populateHeaders () (? error)
+	type @"mime/multipart".Reader struct { @"mime/multipart".bufReader *@"bufio".Reader; @"mime/multipart".currentPart *@"mime/multipart".Part; @"mime/multipart".partsRead int; @"mime/multipart".nl []byte; @"mime/multipart".nlDashBoundary []byte; @"mime/multipart".dashBoundaryDash []byte; @"mime/multipart".dashBoundary []byte }
+	func (@"mime/multipart".rÂ·3 *@"mime/multipart".Reader) NextPart () (? *@"mime/multipart".Part, ? error)
+	func (@"mime/multipart".rÂ·3 *@"mime/multipart".Reader) ReadForm (@"mime/multipart".maxMemoryÂ·4 int64) (@"mime/multipart".fÂ·1 *@"mime/multipart".Form, @"mime/multipart".errÂ·2 error)
+	func (@"mime/multipart".mrÂ·2 *@"mime/multipart".Reader "esc:0x1") @"mime/multipart".isBoundaryDelimiterLine (@"mime/multipart".lineÂ·3 []byte "esc:0x1") (@"mime/multipart".retÂ·1 bool)
+	func (@"mime/multipart".mrÂ·2 *@"mime/multipart".Reader "esc:0x1") @"mime/multipart".isFinalBoundary (@"mime/multipart".lineÂ·3 []byte "esc:0x1") (? bool)
+	func (@"mime/multipart".mrÂ·2 *@"mime/multipart".Reader "esc:0x1") @"mime/multipart".peekBufferIsEmptyPart (@"mime/multipart".peekÂ·3 []byte "esc:0x1") (? bool)
+	func (@"mime/multipart".mrÂ·3 *@"mime/multipart".Reader "esc:0x1") @"mime/multipart".peekBufferSeparatorIndex (@"mime/multipart".peekÂ·4 []byte "esc:0x1") (@"mime/multipart".idxÂ·1 int, @"mime/multipart".isEndÂ·2 bool)
+	type @"net/http".Request struct { Method string; URL *@"net/url".URL; Proto string; ProtoMajor int; ProtoMinor int; Header @"net/http".Header; Body @"io".ReadCloser; ContentLength int64; TransferEncoding []string; Close bool; Host string; Form @"net/url".Values; PostForm @"net/url".Values; MultipartForm *@"mime/multipart".Form; Trailer @"net/http".Header; RemoteAddr string; RequestURI string; TLS *@"crypto/tls".ConnectionState; Cancel <-chan struct {} }
+	func (@"net/http".rÂ·1 *@"net/http".Request "esc:0x1") AddCookie (@"net/http".cÂ·2 *@"net/http".Cookie "esc:0x9")
+	func (@"net/http".rÂ·4 *@"net/http".Request "esc:0x1") BasicAuth () (@"net/http".usernameÂ·1 string, @"net/http".passwordÂ·2 string, @"net/http".okÂ·3 bool)
+	func (@"net/http".rÂ·3 *@"net/http".Request "esc:0x1") Cookie (@"net/http".nameÂ·4 string "esc:0x1") (? *@"net/http".Cookie, ? error)
+	func (@"net/http".rÂ·2 *@"net/http".Request "esc:0x1") Cookies () (? []*@"net/http".Cookie)
+	func (@"net/http".rÂ·4 *@"net/http".Request "esc:0x9") FormFile (@"net/http".keyÂ·5 string "esc:0x1") (? @"mime/multipart".File, ? *@"mime/multipart".FileHeader, ? error)
+	func (@"net/http".rÂ·2 *@"net/http".Request "esc:0x9") FormValue (@"net/http".keyÂ·3 string "esc:0x1") (? string)
+	func (@"net/http".rÂ·3 *@"net/http".Request "esc:0x9") MultipartReader () (? *@"mime/multipart".Reader, ? error)
+	func (@"net/http".rÂ·2 *@"net/http".Request "esc:0x9") ParseForm () (? error)
+	func (@"net/http".rÂ·2 *@"net/http".Request "esc:0x9") ParseMultipartForm (@"net/http".maxMemoryÂ·3 int64) (? error)
+	func (@"net/http".rÂ·2 *@"net/http".Request "esc:0x9") PostFormValue (@"net/http".keyÂ·3 string "esc:0x1") (? string)
+	func (@"net/http".rÂ·2 *@"net/http".Request "esc:0x1") ProtoAtLeast (@"net/http".majorÂ·3 int, @"net/http".minorÂ·4 int) (? bool) { return @"net/http".rÂ·2.ProtoMajor > @"net/http".majorÂ·3 || @"net/http".rÂ·2.ProtoMajor == @"net/http".majorÂ·3 && @"net/http".rÂ·2.ProtoMinor >= @"net/http".minorÂ·4 }
+	func (@"net/http".rÂ·2 *@"net/http".Request "esc:0x1") Referer () (? string)
+	func (@"net/http".rÂ·1 *@"net/http".Request "esc:0x1") SetBasicAuth (@"net/http".usernameÂ·2 string "esc:0x1", @"net/http".passwordÂ·3 string "esc:0x1")
+	func (@"net/http".rÂ·2 *@"net/http".Request "esc:0x1") UserAgent () (? string)
+	func (@"net/http".rÂ·2 *@"net/http".Request "esc:0x9") Write (@"net/http".wÂ·3 @"io".Writer) (? error)
+	func (@"net/http".rÂ·2 *@"net/http".Request "esc:0x9") WriteProxy (@"net/http".wÂ·3 @"io".Writer) (? error)
+	func (@"net/http".rÂ·1 *@"net/http".Request "esc:0x9") @"net/http".closeBody ()
+	func (@"net/http".rÂ·2 *@"net/http".Request "esc:0x1") @"net/http".expectsContinue () (? bool)
+	func (@"net/http".rÂ·3 *@"net/http".Request "esc:0xa") @"net/http".multipartReader () (? *@"mime/multipart".Reader, ? error)
+	func (@"net/http".rÂ·2 *@"net/http".Request "esc:0x1") @"net/http".wantsClose () (? bool)
+	func (@"net/http".rÂ·2 *@"net/http".Request "esc:0x1") @"net/http".wantsHttp10KeepAlive () (? bool)
+	func (@"net/http".reqÂ·2 *@"net/http".Request "esc:0x9") @"net/http".write (@"net/http".wÂ·3 @"io".Writer, @"net/http".usingProxyÂ·4 bool, @"net/http".extraHeadersÂ·5 @"net/http".Header "esc:0x9") (? error)
+	type @"net/http".HandlerFunc func(? @"net/http".ResponseWriter, ? *@"net/http".Request)
+	func (@"net/http".fÂ·1 @"net/http".HandlerFunc "esc:0x1") ServeHTTP (@"net/http".wÂ·2 @"net/http".ResponseWriter, @"net/http".rÂ·3 *@"net/http".Request)
+	type @"github.com/codegangsta/negroni".HandlerFunc func(@"github.com/codegangsta/negroni".rw @"net/http".ResponseWriter, @"github.com/codegangsta/negroni".r *@"net/http".Request, @"github.com/codegangsta/negroni".next @"net/http".HandlerFunc)
+	func (@"github.com/codegangsta/negroni".hÂ·1 @"github.com/codegangsta/negroni".HandlerFunc "esc:0x1") ServeHTTP (@"github.com/codegangsta/negroni".rwÂ·2 @"net/http".ResponseWriter, @"github.com/codegangsta/negroni".rÂ·3 *@"net/http".Request, @"github.com/codegangsta/negroni".nextÂ·4 @"net/http".HandlerFunc)
+	func @"".UpdateUser (@"".tokenÂ·2 *string) (? @"github.com/codegangsta/negroni".HandlerFunc)
+	func @"".UpdateUserName (@"".tokenÂ·2 *string) (? @"github.com/codegangsta/negroni".HandlerFunc)
+	func @"".UpdateUserEmail (@"".tokenÂ·2 *string) (? @"github.com/codegangsta/negroni".HandlerFunc)
+	func @"".UpdateUserPicture (@"".tokenÂ·2 *string) (? @"github.com/codegangsta/negroni".HandlerFunc)
+	func @"".UpdateUserPassword (@"".tokenÂ·2 *string) (? @"github.com/codegangsta/negroni".HandlerFunc)
+	func @"".FetchUser (@"".tokenÂ·2 *string) (? @"github.com/codegangsta/negroni".HandlerFunc)
+	func @"".AcceptContactInvite (@"".wÂ·1 @"net/http".ResponseWriter "esc:0x1", @"".rÂ·2 *@"net/http".Request "esc:0x1", @"".nextÂ·3 @"net/http".HandlerFunc "esc:0x1") {  }
+	func @"".RefuseContactInvite (@"".wÂ·1 @"net/http".ResponseWriter "esc:0x1", @"".rÂ·2 *@"net/http".Request "esc:0x1", @"".nextÂ·3 @"net/http".HandlerFunc "esc:0x1") {  }
+	func @"".RefuseGroupInvite (@"".wÂ·1 @"net/http".ResponseWriter "esc:0x1", @"".rÂ·2 *@"net/http".Request "esc:0x1", @"".nextÂ·3 @"net/http".HandlerFunc "esc:0x1") {  }
+	func @"".AcceptGroupInvite (@"".wÂ·1 @"net/http".ResponseWriter "esc:0x1", @"".rÂ·2 *@"net/http".Request "esc:0x1", @"".nextÂ·3 @"net/http".HandlerFunc "esc:0x1") {  }
+	func @"".RenameGroup (@"".wÂ·1 @"net/http".ResponseWriter "esc:0x1", @"".rÂ·2 *@"net/http".Request "esc:0x1", @"".nextÂ·3 @"net/http".HandlerFunc "esc:0x1") {  }
+	func @"".RemoveFromGroup (@"".wÂ·1 @"net/http".ResponseWriter "esc:0x1", @"".rÂ·2 *@"net/http".Request "esc:0x1", @"".nextÂ·3 @"net/http".HandlerFunc "esc:0x1") {  }
+	func @"".LeaveGroup (@"".wÂ·1 @"net/http".ResponseWriter "esc:0x1", @"".rÂ·2 *@"net/http".Request "esc:0x1", @"".nextÂ·3 @"net/http".HandlerFunc "esc:0x1") {  }
+	func @"".AddToGroup (@"".wÂ·1 @"net/http".ResponseWriter "esc:0x1", @"".rÂ·2 *@"net/http".Request "esc:0x1", @"".nextÂ·3 @"net/http".HandlerFunc "esc:0x1") {  }
+	func @"".RemoveGroup (@"".wÂ·1 @"net/http".ResponseWriter "esc:0x1", @"".rÂ·2 *@"net/http".Request "esc:0x1", @"".nextÂ·3 @"net/http".HandlerFunc "esc:0x1") {  }
+	func @"".CreateGroup (@"".tokenÂ·2 *string) (? @"github.com/codegangsta/negroni".HandlerFunc)
+	func @"".RemoveContact (@"".tokenÂ·2 *string) (? @"github.com/codegangsta/negroni".HandlerFunc)
+	func @"".AddContact (@"".tokenÂ·2 *string) (? @"github.com/codegangsta/negroni".HandlerFunc)
+	func @"".FetchUserContact (@"".tokenÂ·2 *string) (? @"github.com/codegangsta/negroni".HandlerFunc)
+	func @"".FetchUserContacts (@"".tokenÂ·2 *string) (? @"github.com/codegangsta/negroni".HandlerFunc)
+	func @"".LoginUser (@"".wÂ·1 @"net/http".ResponseWriter, @"".rÂ·2 *@"net/http".Request "esc:0x9")
+	func @"".CreateUser (@"".wÂ·1 @"net/http".ResponseWriter, @"".rÂ·2 *@"net/http".Request)
+	func @"".init ()
+	func @"math/big".low64 (@"math/big".zÂ·2 @"math/big".nat "esc:0x1") (? uint64) { if len(@"math/big".zÂ·2) == 0x0 { return 0x0 }; var @"math/big".vÂ·3 uint64; ; @"math/big".vÂ·3 = uint64(@"math/big".zÂ·2[0x0]); if false && len(@"math/big".zÂ·2) > 0x1 { @"math/big".vÂ·3 |= uint64(@"math/big".zÂ·2[0x1]) << 0x20 }; return @"math/big".vÂ·3 }
+	var @"time".months [12]string
+	var @"time".days [7]string
+	var @"time".Local *@"time".Location
+	var @"time".UTC *@"time".Location
+	func @"net".IPv4 (@"net".aÂ·2 byte, @"net".bÂ·3 byte, @"net".cÂ·4 byte, @"net".dÂ·5 byte) (? @"net".IP) { var @"net".pÂ·6 @"net".IP; ; @"net".pÂ·6 = make(@"net".IP, 0x10); copy(@"net".pÂ·6, @"net".v4InV6Prefix); @"net".pÂ·6[0xc] = @"net".aÂ·2; @"net".pÂ·6[0xd] = @"net".bÂ·3; @"net".pÂ·6[0xe] = @"net".cÂ·4; @"net".pÂ·6[0xf] = @"net".dÂ·5; return @"net".pÂ·6 }
+	var @"bufio".ErrInvalidUnreadByte error
+	var @"bufio".ErrInvalidUnreadRune error
+	import errors "errors" // indirect
+	func @"errors".New (@"errors".textÂ·2 string) (? error) { return (&@"errors".errorString{ @"errors".s:@"errors".textÂ·2 }) }
+	var @"net".v4InV6Prefix []byte
+	type @"errors".errorString struct { @"errors".s string }
+	func (@"errors".eÂ·2 *@"errors".errorString "esc:0x22") Error () (? string) { return @"errors".eÂ·2.@"errors".s }
+
+$$
+ _go_.o          0           0     0     644     132071    `
+go object darwin amd64 go1.5.3 X:none
+
+!
+  go13ldmodels.aencoding/json.anet/http.a
+log.a*core/authentication.a0github.com/gorilla/mux.aHgithub.com/lonelycode/go-uuid/uuid.a api/parameters.amydb.a,gopkg.in/mgo.v2/bson.a@github.com/codegangsta/negroni.a ş."".initAndGenerateToken     ”eH‹%    H;a†­  Hì€   1ÛH‰œ$   H‰œ$˜   H‰œ$    1ÛH‰œ$¨   H‰œ$°   è    H‹$H‰\$8è    H‹$H‹D$H‹\$8H‰$H‰L$pH‰L$H‰D$xH‰D$è    H‹T$H‰T$@H‹L$ H‰L$HH‹D$(H‹\$0H‰\$XH‰D$PHƒø tfHÇ$    1ÛH‰\$H‰\$è    H‹T$H‹L$ H‹D$(HÇ„$ˆ   ô  H‰”$   H‰Œ$˜   H‰„$    1ÛH‰œ$¨   H‰œ$°   HÄ€   Ã1ÛH‰\$`H‰\$hH‰T$`H‰L$hH    H‰$H\$`H‰\$HÇD$    è    H\$H‹H‰$H‹KH‰L$è    H‹T$H‹L$H‹D$ HÇ„$ˆ   È   H‰”$   H‰Œ$˜   H‰„$    H‹\$@H‰œ$¨   H‹\$HH‰œ$°   HÄ€   Ãè    é6şÿÿ
+      
+  `core/authentication.InitJWTAuthenticationBackend   ª
+  Lgithub.com/lonelycode/go-uuid/uuid.New   €
+  zcore/authentication.(*JWTAuthenticationBackend).GenerateToken   
+  2runtime.stringtoslicebyte   â  Ntype.api/parameters.TokenAuthentication   š
+  runtime.convT2E   Î
+  *encoding/json.Marshal   ‚
+  0runtime.morestack_noctxt   `€  "".autotmp_0017 ?Ntype.api/parameters.TokenAuthentication "".autotmp_0016  type.[]uint8 "".autotmp_0015 type.string "".err _type.error "".token type.string "".authBackend dtype.*core/authentication.JWTAuthenticationBackend "".~r2 @type.string "".~r1 type.[]uint8 "".~r0  type.int (€ıÿ€§ÿ€ Ğ "8FSfbF  F+Í„ TgclocalsÂ·005d20618ad0d1fcd7506fcb8e04d919 TgclocalsÂ·79cc28e170da85496fa66e962ef37b98   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goşF"".checkUserInformationsForCreation  €  äeH‹%    HD$ˆH;A†  Hìø   1ÛH‰œ$Ğ  H‰œ$Ø  H‹œ$  Hƒû t8H‹œ$  Hƒû t*H‹œ$H  Hƒû tH‹œ$˜  Hƒû u9H‹œ$8  Hƒû u+Æ„$È   H    H‰œ$Ğ  HÇ„$Ø     HÄø   ÃH‹œ$¨  Hƒû uH‹œ$8  Hƒû t¹Hœ$@  H‹H‰$H‹KH‰L$è    ¶\$HÇÅ   @8ëu+Æ„$È   H    H‰œ$Ğ  HÇ„$Ø     HÄø   ÃH‹œ$8  Hƒû …ú  HÇ$    H    H‰\$HÇD$+   Hœ$  H|$H‹H‰H‹KH‰Oè    H\$(H‹H‰$H‹KH‰L$è    H‹\$H‰\$8H‹D$H‹\$ H‰\$hH‰D$`Hƒø „˜  H    H‰œ$°   HÇ„$¸      1ÛH‰œ$Ø   H‰œ$à   H‰œ$è   H‰œ$ğ   Hœ$Ø   Hƒû „B  HÇ„$È      HÇ„$Ğ      H‰œ$À   H    H‰$Hœ$°   H‰\$HÇD$    è    H‹L$H‹D$ H‹œ$À   H‰Œ$    H‰H‰„$¨   €=     …³   H‰CH‹\$`H‰$H‹\$hH‰\$è    H‹L$H‹D$H‹œ$À   HƒÃH‰Œ$    H‰H‰„$¨   €=     uQH‰CH‹œ$À   H‰$H‹œ$È   H‰\$H‹œ$Ğ   H‰\$è    Æ„$È  1ÛH‰œ$Ğ  H‰œ$Ø  HÄø   ÃLCL‰$H‰D$è    ëŸLCL‰$H‰D$è    é:ÿÿÿ‰é·şÿÿH    H‰$è    H‹\$H‰\$HH    H‰$H‹t$8Hƒş „¨  H^@H|$H‹H‰H‹KH‰Oè    H‹L$H‹D$ H‰Œ$   H‰L$PH‰„$˜   H‰D$XH    H‰$è    H‹|$H‰ùHƒÿ „?  1Àè    H‰L$@H‹l$PH‰)H‹l$X€=     …ı   H‰iH‹D$HH‰$H    H‰œ$    H‰\$H‰„$¨   H‰D$è    H‹l$8H‹]HûÈ   t+Æ„$È   H    H‰œ$Ğ  HÇ„$Ø     HÄø   ÃH‹\$HH‹sH‹KH‹”$   H‹„$¨  H9Áu@H‰´$€   H‰4$H‰Œ$ˆ   H‰L$H‰T$pH‰T$H‰D$xH‰D$è    ¶\$ €û …şÿÿÆ„$È   H    H‰œ$Ğ  HÇ„$Ø     HÄø   ÃLAL‰$H‰l$è    H‹L$@éëşÿÿ‰éºşÿÿ‰éQşÿÿéÄıÿÿè    éÎúÿÿ>
+      „  Pgo.string."User informations not filled"   ®
+  .mydb.DoesEmailExistInDB   î  Hgo.string."User email already exist"   è  ngo.string."https://graph.facebook.com/me?access_token="   Ä
+  *runtime.concatstring2   ø
+  net/http.Get   Ö   go.string."err:"   ´  type.string   ò
+  runtime.convT2E   È	 6runtime.writeBarrierEnabled   
+
+  runtime.convI2E   ì
+ 6runtime.writeBarrierEnabled   Ğ
+  log.Println   ¸
+  .runtime.writebarrierptr   à
+  .runtime.writebarrierptr   †  Btype."".FBTokenValidationResponse   ˜
+  "runtime.newobject   º  type.io.Reader   ˜
+  runtime.convI2I   î  4type.encoding/json.Decoder   €
+  "runtime.newobject   ²
+Ò  runtime.duffzero   â 6runtime.writeBarrierEnabled   ˜  Dtype.*"".FBTokenValidationResponse   Ö
+  >encoding/json.(*Decoder).Decode   ˜  6go.string."Token not valid"   ø
+   runtime.eqstring   ²  0go.string."ID not valid"   
+  .runtime.writebarrierptr   Ò
+  0runtime.morestack_noctxt   Àğ  $"".autotmp_0040 type.string "".autotmp_0039 ïtype.string "".autotmp_0038 ï6type.*encoding/json.Decoder "".autotmp_0037  6type.*encoding/json.Decoder "".autotmp_0036 Ïtype.io.Reader "".autotmp_0035  "type.interface {} "".autotmp_0034 ¯"type.interface {} "".autotmp_0033 ?(type.[2]interface {} "".autotmp_0030 o&type.[]interface {} "".autotmp_0028 type.string "".autotmp_0027  type.int "".&jsonResp ßDtype.*"".FBTokenValidationResponse $encoding/json.rÂ·2 Ïtype.io.Reader "".err ¯type.error "".resp ÿ.type.*net/http.Response "".~r2  type.string "".~r1 type.bool "".user  *type.models.UserModel Pğ‚ïğtïğöïğİïğŒïğG À
+ ZP1F+.+pÄ"2Õ+b+*' < ÖâNa4@4k‘	K: TgclocalsÂ·32c30788e34c97a423966af4504c1740 TgclocalsÂ·524bc607bde23021f50e82791856fde2   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş@"".checkUserInformationsForLogin  €  âeH‹%    HD$ˆH;A†O  Hìø   1ÛH‰œ$Ğ  H‰œ$Ø  H‹œ$H  Hƒû tH‹œ$˜  Hƒû u9H‹œ$8  Hƒû u+Æ„$È   H    H‰œ$Ğ  HÇ„$Ø     HÄø   ÃH‹œ$¨  Hƒû uH‹œ$8  Hƒû t¹Hœ$@  H‹H‰$H‹KH‰L$è    ¶\$1í@8ëu+Æ„$È   H    H‰œ$Ğ  HÇ„$Ø     HÄø   ÃH‹œ$8  Hƒû „‚   Hœ$   H‰$Hƒ$@Hœ$   H‰\$HƒD$0è    ¶\$1í@8ëu+Æ„$È   H    H‰œ$Ğ  HÇ„$Ø     HÄø   ÃÆ„$È  1ÛH‰œ$Ğ  H‰œ$Ø  HÄø   ÃHÇ$    H    H‰\$HÇD$+   Hœ$  H|$H‹H‰H‹KH‰Oè    H\$(H‹H‰$H‹KH‰L$è    H‹\$H‰\$8H‹D$H‹\$ H‰\$hH‰D$`Hƒø „{  H    H‰œ$°   HÇ„$¸      1ÛH‰œ$Ø   H‰œ$à   H‰œ$è   H‰œ$ğ   Hœ$Ø   Hƒû „%  HÇ„$È      HÇ„$Ğ      H‰œ$À   H    H‰$Hœ$°   H‰\$HÇD$    è    H‹L$H‹D$ H‹œ$À   H‰Œ$    H‰H‰„$¨   €=     …–   H‰CH‹\$`H‰$H‹\$hH‰\$è    H‹L$H‹D$H‹œ$À   HƒÃH‰Œ$    H‰H‰„$¨   €=     u4H‰CH‹œ$À   H‰$H‹œ$È   H‰\$H‹œ$Ğ   H‰\$è    éşÿÿLCL‰$H‰D$è    ë¼LCL‰$H‰D$è    éWÿÿÿ‰éÔşÿÿH    H‰$è    H‹\$H‰\$HH    H‰$H‹t$8Hƒş „¨  H^@H|$H‹H‰H‹KH‰Oè    H‹L$H‹D$ H‰Œ$   H‰L$PH‰„$˜   H‰D$XH    H‰$è    H‹|$H‰ùHƒÿ „?  1Àè    H‰L$@H‹l$PH‰)H‹l$X€=     …ı   H‰iH‹D$HH‰$H    H‰œ$    H‰\$H‰„$¨   H‰D$è    H‹l$8H‹]HûÈ   t+Æ„$È   H    H‰œ$Ğ  HÇ„$Ø     HÄø   ÃH‹\$HH‹sH‹KH‹”$   H‹„$¨  H9Áu@H‰´$€   H‰4$H‰Œ$ˆ   H‰L$H‰T$pH‰T$H‰D$xH‰D$è    ¶\$ €û …VüÿÿÆ„$È   H    H‰œ$Ğ  HÇ„$Ø     HÄø   ÃLAL‰$H‰l$è    H‹L$@éëşÿÿ‰éºşÿÿ‰éQşÿÿè    éúÿÿB
+      Ì  Pgo.string."User informations not filled"   ö
+  .mydb.DoesEmailExistInDB   ¬  >go.string."User does not exist"   Ú
+  2mydb.ValidateUserPassword     :go.string."Incorect password"   ª  ngo.string."https://graph.facebook.com/me?access_token="   †
+  *runtime.concatstring2   º
+  net/http.Get   ˜   go.string."err:"   ö	  type.string   ´
+
+  runtime.convT2E   Š 6runtime.writeBarrierEnabled   Ğ
+  runtime.convI2E   ® 6runtime.writeBarrierEnabled   ’
+  log.Println   À
+  .runtime.writebarrierptr   è
+  .runtime.writebarrierptr     Btype."".FBTokenValidationResponse    
+  "runtime.newobject   Â  type.io.Reader    
+  runtime.convI2I   ö  4type.encoding/json.Decoder   ˆ
+  "runtime.newobject   º
+Ò  runtime.duffzero   ê 6runtime.writeBarrierEnabled      Dtype.*"".FBTokenValidationResponse   Ş
+  >encoding/json.(*Decoder).Decode      6go.string."Token not valid"   €
+   runtime.eqstring   º  0go.string."ID not valid"   –
+  .runtime.writebarrierptr   Ğ
+  0runtime.morestack_noctxt   Àğ  &"".autotmp_0063 type.string "".autotmp_0062 ïtype.string "".autotmp_0061 ï6type.*encoding/json.Decoder "".autotmp_0060  6type.*encoding/json.Decoder "".autotmp_0059 Ïtype.io.Reader "".autotmp_0058  "type.interface {} "".autotmp_0057 ¯"type.interface {} "".autotmp_0056 ?(type.[2]interface {} "".autotmp_0053 o&type.[]interface {} "".autotmp_0051 type.string "".autotmp_0050  type.bool "".autotmp_0049  type.int "".&jsonResp ßDtype.*"".FBTokenValidationResponse $encoding/json.rÂ·2 Ïtype.io.Reader "".err ¯type.error "".resp ÿ.type.*net/http.Response "".~r2  type.string "".~r1 type.bool "".user  *type.models.UserModel Xğfïğoïğqïğ!ïğ¥ïğŒïğC € b~1*+)+5+ "pÄ2Õ+b+* < ºßNa@4k‘	K6 TgclocalsÂ·32c30788e34c97a423966af4504c1740 TgclocalsÂ·524bc607bde23021f50e82791856fde2   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş"".UpdateUser  €  æeH‹%    H;av]HƒìH    H‰$è    H‹D$H-    H‰(H‰D$H‹l$ €=     uH‰hH‰D$(HƒÄÃL@L‰$H‰l$è    H‹D$ëİè    ë
+      ,  Ptype.struct { F uintptr; token *string }   >
+  "runtime.newobject   V  &"".UpdateUser.func1   | 6runtime.writeBarrierEnabled   Â
+  .runtime.writebarrierptr   Ú
+  0runtime.morestack_noctxt    0  "".autotmp_0066 Rtype.*struct { F uintptr; token *string } "".~r1 ^type.github.com/codegangsta/negroni.HandlerFunc "".token  type.*string 0?/0- € À6.
+-./  B  TgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa TgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş""".UpdateUserName  €  æeH‹%    H;av]HƒìH    H‰$è    H‹D$H-    H‰(H‰D$H‹l$ €=     uH‰hH‰D$(HƒÄÃL@L‰$H‰l$è    H‹D$ëİè    ë
+      ,  Ptype.struct { F uintptr; token *string }   >
+  "runtime.newobject   V  ."".UpdateUserName.func1   | 6runtime.writeBarrierEnabled   Â
+  .runtime.writebarrierptr   Ú
+  0runtime.morestack_noctxt    0  "".autotmp_0067 Rtype.*struct { F uintptr; token *string } "".~r1 ^type.github.com/codegangsta/negroni.HandlerFunc "".token  type.*string 0?/0- € €6<
+;<=  B  TgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa TgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş$"".UpdateUserEmail  €  æeH‹%    H;av]HƒìH    H‰$è    H‹D$H-    H‰(H‰D$H‹l$ €=     uH‰hH‰D$(HƒÄÃL@L‰$H‰l$è    H‹D$ëİè    ë
+      ,  Ptype.struct { F uintptr; token *string }   >
+  "runtime.newobject   V  0"".UpdateUserEmail.func1   | 6runtime.writeBarrierEnabled   Â
+  .runtime.writebarrierptr   Ú
+  0runtime.morestack_noctxt    0  "".autotmp_0068 Rtype.*struct { F uintptr; token *string } "".~r1 ^type.github.com/codegangsta/negroni.HandlerFunc "".token  type.*string 0?/0- € Î6F
+EFG  B  TgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa TgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş("".UpdateUserPicture  €  æeH‹%    H;av]HƒìH    H‰$è    H‹D$H-    H‰(H‰D$H‹l$ €=     uH‰hH‰D$(HƒÄÃL@L‰$H‰l$è    H‹D$ëİè    ë
+      ,  Ptype.struct { F uintptr; token *string }   >
+  "runtime.newobject   V  4"".UpdateUserPicture.func1   | 6runtime.writeBarrierEnabled   Â
+  .runtime.writebarrierptr   Ú
+  0runtime.morestack_noctxt    0  "".autotmp_0069 Rtype.*struct { F uintptr; token *string } "".~r1 ^type.github.com/codegangsta/negroni.HandlerFunc "".token  type.*string 0?/0- € ¦62
+123  B  TgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa TgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş*"".UpdateUserPassword  €  æeH‹%    H;av]HƒìH    H‰$è    H‹D$H-    H‰(H‰D$H‹l$ €=     uH‰hH‰D$(HƒÄÃL@L‰$H‰l$è    H‹D$ëİè    ë
+      ,  Ptype.struct { F uintptr; token *string }   >
+  "runtime.newobject   V  6"".UpdateUserPassword.func1   | 6runtime.writeBarrierEnabled   Â
+  .runtime.writebarrierptr   Ú
+  0runtime.morestack_noctxt    0  "".autotmp_0070 Rtype.*struct { F uintptr; token *string } "".~r1 ^type.github.com/codegangsta/negroni.HandlerFunc "".token  type.*string 0?/0- € ê6J
+IJK  B  TgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa TgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş"".FetchUser  €  æeH‹%    H;av]HƒìH    H‰$è    H‹D$H-    H‰(H‰D$H‹l$ €=     uH‰hH‰D$(HƒÄÃL@L‰$H‰l$è    H‹D$ëİè    ë
+      ,  Ptype.struct { F uintptr; token *string }   >
+  "runtime.newobject   V  $"".FetchUser.func1   | 6runtime.writeBarrierEnabled   Â
+  .runtime.writebarrierptr   Ú
+  0runtime.morestack_noctxt    0  "".autotmp_0071 Rtype.*struct { F uintptr; token *string } "".~r1 ^type.github.com/codegangsta/negroni.HandlerFunc "".token  type.*string 0?/0- € Ä6
+  B  TgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa TgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş,"".AcceptContactInvite     Ã @   "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter   ü  TgclocalsÂ·31b2ddfd7c7062d584469c95698a3e1d TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş,"".RefuseContactInvite     Ã @   "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter     TgclocalsÂ·31b2ddfd7c7062d584469c95698a3e1d TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş("".RefuseGroupInvite     Ã @   "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter   ¤  TgclocalsÂ·31b2ddfd7c7062d584469c95698a3e1d TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş("".AcceptGroupInvite     Ã @   "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter   ¸  TgclocalsÂ·31b2ddfd7c7062d584469c95698a3e1d TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş"".RenameGroup     Ã @   "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter   Î  TgclocalsÂ·31b2ddfd7c7062d584469c95698a3e1d TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş$"".RemoveFromGroup     Ã @   "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter   ä  TgclocalsÂ·31b2ddfd7c7062d584469c95698a3e1d TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş"".LeaveGroup     Ã @   "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter   ø  TgclocalsÂ·31b2ddfd7c7062d584469c95698a3e1d TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş"".AddToGroup     Ã @   "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter     TgclocalsÂ·31b2ddfd7c7062d584469c95698a3e1d TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş"".RemoveGroup     Ã @   "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter   ¢  TgclocalsÂ·31b2ddfd7c7062d584469c95698a3e1d TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş"".CreateGroup  €  æeH‹%    H;av]HƒìH    H‰$è    H‹D$H-    H‰(H‰D$H‹l$ €=     uH‰hH‰D$(HƒÄÃL@L‰$H‰l$è    H‹D$ëİè    ë
+      ,  Ptype.struct { F uintptr; token *string }   >
+  "runtime.newobject   V  ("".CreateGroup.func1   | 6runtime.writeBarrierEnabled   Â
+  .runtime.writebarrierptr   Ú
+  0runtime.morestack_noctxt    0  "".autotmp_0072 Rtype.*struct { F uintptr; token *string } "".~r1 ^type.github.com/codegangsta/negroni.HandlerFunc "".token  type.*string 0?/0- € ²60
+/01  B  TgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa TgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş&"".isContactInArray     ŒeH‹%    H;a†)  Hì€   H‹œ$   Hƒû „	  H‹3H‹KH‹kH‰l$x1ÀH‰L$pH‰L$0H‰t$hH‹l$0H9è°   H‰t$@Hƒş „Ä   H‹>H‹NH‰D$8H‰D$(H‹œ$ˆ   Hƒû „š   L‹H‹SH9Ñu]H‰|$HH‰<$H‰L$PH‰L$L‰D$XL‰D$H‰T$`H‰T$è    H‹t$@H‹D$8¶\$ €û tÆ„$˜   H‹\$(H‰œ$    HÄ€   ÃHƒÆHÿÀH‹l$0H9èŒPÿÿÿÆ„$˜    HÇ„$        HÄ€   Ã‰é_ÿÿÿ‰é5ÿÿÿ‰éğşÿÿè    éºşÿÿ
+      ‚
+   runtime.eqstring   ú
+  0runtime.morestack_noctxt   @€  "".autotmp_0078  type.string "".autotmp_0077 Otype.string "".autotmp_0076 type.*string "".autotmp_0075 Ÿtype.int "".autotmp_0074 type.int "".autotmp_0073 /type.[]string "".tmpContact otype.string "".idx ¯type.int "".~r3 0type.int "".~r2  type.bool "".contactList type.*[]string "".contactId  type.*string &€Ûÿ€0ÿ€) Ğ (êa^
+  À TgclocalsÂ·aefd16b155593f6f07980a05b297ad1f TgclocalsÂ·5e29cf4e275ff1db65cfee262b3b8d1f   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş "".RemoveContact  €  æeH‹%    H;av]HƒìH    H‰$è    H‹D$H-    H‰(H‰D$H‹l$ €=     uH‰hH‰D$(HƒÄÃL@L‰$H‰l$è    H‹D$ëİè    ë
+      ,  Ptype.struct { F uintptr; token *string }   >
+  "runtime.newobject   V  ,"".RemoveContact.func1   | 6runtime.writeBarrierEnabled   Â
+  .runtime.writebarrierptr   Ú
+  0runtime.morestack_noctxt    0  "".autotmp_0079 Rtype.*struct { F uintptr; token *string } "".~r1 ^type.github.com/codegangsta/negroni.HandlerFunc "".token  type.*string 0?/0- € „6,
++,-  B  TgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa TgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş"".AddContact  €  æeH‹%    H;av]HƒìH    H‰$è    H‹D$H-    H‰(H‰D$H‹l$ €=     uH‰hH‰D$(HƒÄÃL@L‰$H‰l$è    H‹D$ëİè    ë
+      ,  Ptype.struct { F uintptr; token *string }   >
+  "runtime.newobject   V  &"".AddContact.func1   | 6runtime.writeBarrierEnabled   Â
+  .runtime.writebarrierptr   Ú
+  0runtime.morestack_noctxt    0  "".autotmp_0080 Rtype.*struct { F uintptr; token *string } "".~r1 ^type.github.com/codegangsta/negroni.HandlerFunc "".token  type.*string 0?/0- € Â6N
+MNO  B  TgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa TgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş&"".FetchUserContact  €  æeH‹%    H;av]HƒìH    H‰$è    H‹D$H-    H‰(H‰D$H‹l$ €=     uH‰hH‰D$(HƒÄÃL@L‰$H‰l$è    H‹D$ëİè    ë
+      ,  Ptype.struct { F uintptr; token *string }   >
+  "runtime.newobject   V  2"".FetchUserContact.func1   | 6runtime.writeBarrierEnabled   Â
+  .runtime.writebarrierptr   Ú
+  0runtime.morestack_noctxt    0  "".autotmp_0081 Rtype.*struct { F uintptr; token *string } "".~r1 ^type.github.com/codegangsta/negroni.HandlerFunc "".token  type.*string 0?/0- €  64
+345  B  TgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa TgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş("".FetchUserContacts  €  æeH‹%    H;av]HƒìH    H‰$è    H‹D$H-    H‰(H‰D$H‹l$ €=     uH‰hH‰D$(HƒÄÃL@L‰$H‰l$è    H‹D$ëİè    ë
+      ,  Ptype.struct { F uintptr; token *string }   >
+  "runtime.newobject   V  4"".FetchUserContacts.func1   | 6runtime.writeBarrierEnabled   Â
+  .runtime.writebarrierptr   Ú
+  0runtime.morestack_noctxt    0  "".autotmp_0082 Rtype.*struct { F uintptr; token *string } "".~r1 ^type.github.com/codegangsta/negroni.HandlerFunc "".token  type.*string 0?/0- € è6(
+'()  B  TgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa TgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş"".LoginUser  à"  Ä"eH‹%    H„$8şÿÿH;A†}  HìH  1ÀH¼$  è    H‰„$P  H‰„$X  H    H‰$H‹´$`  Hƒş „3  H^@H|$H‹H‰H‹KH‰Oè    H‹L$H‹D$ H‰Œ$`  H‰Œ$   H‰„$h  H‰„$  H    H‰$è    H‹L$H‰ÏHƒù „Ä  1Àè    H‰Œ$ğ   H‹¬$   H‰)H‹¬$  €=     …v  H‰iH‰Œ$è   H    H‰$è    H‹L$H‰Œ$ø   H‹„$è   H‰$H    H‰„$@  H‰D$H‰Œ$H  H‰L$è    H‹D$H‹\$ H‰œ$8  H‰„$0  Hƒø „T  H    H‰œ$p  HÇ„$x     1ÛH‰œ$P  H‰œ$X  Hœ$P  Hƒû „  HÇ„$      HÇ„$¨     H‰œ$˜  H    H‰$Hœ$p  H‰\$HÇD$    è    H‹D$H‹L$ H‹œ$˜  H‰„$@  H‰H‰Œ$H  €=     …  H‰KH‹œ$˜  H‰$H‹œ$   H‰\$H‹œ$¨  H‰\$è    H‹´$ø   H‰çè    è    ¶œ$È   H‰ØH‹œ$Ğ   H‰œ$  H‹œ$Ø   H‰œ$  < „  H‹´$ø   H^@H‹H‰$H‹KH‰L$è    H‹\$H‰œ$à   H‹œ$X  H‰$H‹œ$P  H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$È   H‹œ$X  H‰$H‹œ$P  H‹[0ÿÓH‹„$à   1ÛH‰œ$È  H‰œ$Ğ  H‰œ$Ø  H‰œ$à  Hƒø „9  HXpH¬$È  H‹H‰M H‹KH‰MH˜€   H¬$Ø  H‹H‰M H‹KH‰MH‹œ$È  H‰œ$è  H‹œ$Ğ  H‰œ$ğ  H‹œ$Ø  H‰œ$ø  H‹œ$à  H‰œ$   H    H‰$Hœ$è  H‰\$HÇD$    è    H\$H‹H‰$H‹KH‰L$è    H‹l$H‹T$H‹L$ H‹D$(H‹\$0H‰œ$(  H‰„$   Hƒø tHÄH  ÃH‰¬$€  H‰l$H‰”$ˆ  H‰T$H‰Œ$  H‰L$H‹œ$X  H‰$H‹œ$P  H‹[(ÿÓHÄH  Ã‰ éÀşÿÿH‹œ$X  H‰$H‹œ$P  H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$X  H‰$H‹œ$P  H‹[0ÿÓHÇ$    H‹œ$  H‰\$H‹œ$  H‰\$è    H‹T$H‹L$ H‹D$(H‰”$°  H‰T$H‰Œ$¸  H‰L$H‰„$À  H‰D$H‹œ$X  H‰$H‹œ$P  H‹[(ÿÓé ÿÿÿLCL‰$H‰L$è    énüÿÿ‰éëûÿÿ1ÛH‰œ$  H‰œ$  H‰œ$  H‰œ$   H‰œ$(  H‰œ$0  H‰œ$8  H‰œ$@  Hœ$  Hƒû „H  HÇ„$      HÇ„$¨     H‰œ$˜  H    H‰$H‹œ$ø   H‰\$HÇD$    è    H‹D$H‹L$ H‹œ$˜  H‰„$@  H‰H‰Œ$H  €=     …¹  H‰KH    H‰$H‹œ$ø   H‰\$HƒD$HÇD$    è    H‹D$H‹L$ H‹œ$˜  HƒÃH‰„$@  H‰H‰Œ$H  €=     …<  H‰KH    H‰$H‹œ$ø   H‰\$HƒD$@HÇD$    è    H‹D$H‹L$ H‹œ$˜  HƒÃ H‰„$@  H‰H‰Œ$H  €=     …¿   H‰KH    H‰$H‹œ$ø   H‰\$HƒD$`HÇD$    è    H‹D$H‹L$ H‹œ$˜  HƒÃ0H‰„$@  H‰H‰Œ$H  €=     uIH‰KH    H‰$HÇD$   H‹œ$˜  H‰\$H‹œ$   H‰\$H‹œ$¨  H‰\$ è    éOúÿÿLCL‰$H‰L$è    ë§LCL‰$H‰L$è    é.ÿÿÿLCL‰$H‰L$è    é±şÿÿLCL‰$H‰L$è    é4şÿÿ‰é±ıÿÿLAL‰$H‰l$è    H‹Œ$ğ   éoøÿÿ‰é5øÿÿ‰éÆ÷ÿÿè    é^÷ÿÿr
+      Z
+ô  runtime.duffzero   ˆ  type.io.Reader   ì
+  runtime.convI2I   Î  4type.encoding/json.Decoder   à
+  "runtime.newobject   ’
+Ò  runtime.duffzero   Ô 6runtime.writeBarrierEnabled   ˆ  *type.models.UserModel   š
+  "runtime.newobject   Ú  ,type.*models.UserModel   ˜
+  >encoding/json.(*Decoder).Decode   î  Pgo.string."Error while decoding Request"   ¬  type.string   ê
+  runtime.convT2E   À 6runtime.writeBarrierEnabled   ¬	
+  log.Println   Ì	
+Ä  runtime.duffcopy   Ö	
+  @"".checkUserInformationsForLogin   ş
+
+  (mydb.GetUsersByEmail   Ğ       ì  0go.string."Content-Type"   –  8go.string."application/json"   ¼
+  &net/http.Header.Set   †       ê  ,type."".SignInResponse   ¨
+  runtime.convT2E   Ü
+  *encoding/json.Marshal   Ğ       ¢       ¾  0go.string."Content-Type"   è  8go.string."application/json"   
+  &net/http.Header.Set   Ø       ¢
+  2runtime.stringtoslicebyte   Æ       ğ
+  .runtime.writebarrierptr   ş  type.string   ¼
+  runtime.convT2E   ’ 6runtime.writeBarrierEnabled   ¶  type.string   €
+  runtime.convT2E   Ş 6runtime.writeBarrierEnabled   ‚  type.string   Ì
+  runtime.convT2E   ª 6runtime.writeBarrierEnabled   Î  type.string   ˜
+  runtime.convT2E   ö 6runtime.writeBarrierEnabled   ’  2go.string."%s %s %s %s\n"   „ 
+  log.Printf   ² 
+  .runtime.writebarrierptr   Ú 
+  .runtime.writebarrierptr   ˆ!
+  .runtime.writebarrierptr   ¶!
+  .runtime.writebarrierptr   ò!
+  .runtime.writebarrierptr   ²"
+  0runtime.morestack_noctxt   0	  6"".autotmp_0104  "type.interface {} "".autotmp_0103  "type.interface {} "".autotmp_0102  "type.interface {} "".autotmp_0101  "type.interface {} "".autotmp_0100 (type.[4]interface {} "".autotmp_0097  &type.[]interface {} "".autotmp_0096  "type.interface {} "".autotmp_0095 ï(type.[1]interface {} "".autotmp_0092 ß&type.[]interface {} "".autotmp_0091 ¯6type.*encoding/json.Decoder "".autotmp_0090  6type.*encoding/json.Decoder "".autotmp_0089 Ïtype.io.Reader "".autotmp_0088 ¯type.[]uint8 "".autotmp_0087  (type.net/http.Header "".autotmp_0086 ¿,type."".SignInResponse "".autotmp_0084 ¯type.string "".&user Ÿ,type.*models.UserModel $encoding/json.rÂ·2 type.io.Reader "".err Ïtype.error "".respJson type.[]uint8 "".resp ÿ,type."".SignInResponse "".user Ï,type.*models.UserModel "".errMsg ïtype.string "".err ¯type.error "".decoder ¿6type.*encoding/json.Decoder "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter ("	Æ		H		ş ° „¢	AÀLæ
+@.R+"%¡AR#w/¾`- X u:]?©aT*«•)g
+¦¤`	8 TgclocalsÂ·e76d9788ffeb8eb69a0d7b2c884b94ed TgclocalsÂ·07d211382a4d24b2077d5093f900b65f   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş"".CreateUser  €"  ğ!eH‹%    H„$8şÿÿH;A†S  HìH  1ÀH‰„$`  H‰„$h  H‹Œ$`  1ÒH‰”$€  H‰”$ˆ  H”$€  Hƒú „  HÇ„$à     HÇ„$è     H    H‰”$Ø  H‰œ$P  H‰H‰Œ$X  €=     …¡  H‰JH‰$H‹œ$à  H‰\$H‹œ$è  H‰\$è    H    H‰$H‹´$`  Hƒş „V  H^@H|$H‹H‰H‹KH‰Oè    H‹L$H‹D$ H‰Œ$p  H‰Œ$  H‰„$x  H‰„$  H    H‰$è    H‹|$H‰ùHƒÿ „ç  1Àè    H‰Œ$ğ   H‹¬$  H‰)H‹¬$  €=     …™  H‰iH‰Œ$è   H    H‰$è    H‹L$H‰Œ$ø   H‹„$è   H‰$H    H‰„$P  H‰D$H‰Œ$X  H‰L$è    H‹D$H‹\$ H‰œ$H  H‰„$@  Hƒø „æ   H    H‰œ$°  HÇ„$¸     1ÛH‰œ$`  H‰œ$h  Hœ$`  Hƒû „Ô  HÇ„$à     HÇ„$è     H‰œ$Ø  H    H‰$Hœ$°  H‰\$HÇD$    è    H‹D$H‹L$ H‹œ$Ø  H‰„$P  H‰H‰Œ$X  €=     …E  H‰KH‹œ$Ø  H‰$H‹œ$à  H‰\$H‹œ$è  H‰\$è    H‹´$ø   H‰çè    è    ¶œ$È   H‰ØH‹œ$Ğ   H‰œ$   H‹œ$Ø   H‰œ$(  < „İ  è    H‹$H‰œ$à   H‹\$ H‰œ$   H‹\$(H‰œ$  è    H‹$H‹D$H‰Œ$   H‰$H‰„$¨  H‰D$è    H‹„$ø   H‹T$H‹L$H‰Œ$˜  H‰ˆˆ   H‰”$  €=     ….  H‰€   H‹¬$  H‰hxH‹¬$   €=     …ç  H‰hpH‹h(Hƒı …Ğ  Hh@L@ L‰D$H‰l$H-    H‰,$è    H‹„$ø   H‹¨¨   Hƒı „  HÇ$    H    H‰\$HÇD$   H˜    H|$H‹H‰H‹KH‰OH    H‰\$(HÇD$0   è    H‹L$8H‹D$@H‹œ$ø   H‰„$˜  H‰CXH‰Œ$  €=     …õ  H‰KPH‹œ$X  H‰$H‹œ$P  H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    H‹œ$à   H‰\$H‹œ$X  H‰$H‹œ$P  H‹[0ÿÓH‹´$ø   H‰çè    è    H‹„$ø   1ÛH‰œ$  H‰œ$  H‰œ$  H‰œ$   HXpH¬$  H‹H‰M H‹KH‰MH˜€   H¬$  H‹H‰M H‹KH‰MH‹œ$  H‰œ$(  H‹œ$  H‰œ$0  H‹œ$  H‰œ$8  H‹œ$   H‰œ$@  H    H‰$Hœ$(  H‰\$HÇD$    è    H\$H‹H‰$H‹KH‰L$è    H‹l$H‹T$H‹L$ H‹D$(H‹\$0H‰œ$8  H‰„$0  Hƒø tHÄH  ÃH‰¬$À  H‰l$H‰”$È  H‰T$H‰Œ$Ğ  H‰L$H‹œ$X  H‰$H‹œ$P  H‹[(ÿÓHÄH  ÃLCPL‰$H‰L$è    éøıÿÿéóıÿÿéUıÿÿL@pL‰$H‰l$è    H‹„$ø   éşüÿÿL€€   L‰$H‰T$è    H‹„$ø   é·üÿÿH‹œ$X  H‰$H‹œ$P  H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$X  H‰$H‹œ$P  H‹[0ÿÓHÇ$    H‹œ$   H‰\$H‹œ$(  H‰\$è    H‹T$H‹L$ H‹D$(H‰”$ğ  H‰T$H‰Œ$ø  H‰L$H‰„$   H‰D$H‹œ$X  H‰$H‹œ$P  H‹[(ÿÓé¥şÿÿLCL‰$H‰L$è    é¨úÿÿ‰é%úÿÿLAL‰$H‰l$è    H‹Œ$ğ   éLùÿÿ‰éùÿÿ‰é£øÿÿLBL‰$H‰L$è    H‹”$Ø  éDøÿÿ‰éò÷ÿÿè    éˆ÷ÿÿr
+      ö  ,type.*net/http.Request   ¸ 6runtime.writeBarrierEnabled   ”
+  log.Println   ¢  type.io.Reader   †
+  runtime.convI2I   è  4type.encoding/json.Decoder   ú
+  "runtime.newobject   ¬
+Ò  runtime.duffzero   î 6runtime.writeBarrierEnabled   ¢  *type.models.UserModel   ´
+  "runtime.newobject   ô  ,type.*models.UserModel   ²
+  >encoding/json.(*Decoder).Decode   ˆ  Pgo.string."Error while decoding Request"   Æ	  type.string   „
+
+  runtime.convT2E   Ú
+ 6runtime.writeBarrierEnabled   Æ
+  log.Println   æ
+Ä  runtime.duffcopy   ğ
+  F"".checkUserInformationsForCreation   à
+  ."".initAndGenerateToken   ¶
+  @gopkg.in/mgo.v2/bson.NewObjectId   „
+  Bgopkg.in/mgo.v2/bson.ObjectId.Hex   â 6runtime.writeBarrierEnabled   ² 6runtime.writeBarrierEnabled   –  type.string   ¨
+  (runtime.typedmemmove   ø  Ngo.string."https://graph.facebook.com/"   Ö  >go.string."/picture?type=large"   ü
+  *runtime.concatstring3   Ô 6runtime.writeBarrierEnabled   ¢       ¾  0go.string."Content-Type"   è  8go.string."application/json"   
+  &net/http.Header.Set   à       ü
+Ä  runtime.duffcopy   †
+  $mydb.CreateNewUser   Ú  ,type."".SignInResponse   ˜
+  runtime.convT2E   Ì
+  *encoding/json.Marshal   À       ğ
+  .runtime.writebarrierptr   ²
+  .runtime.writebarrierptr   ö
+  .runtime.writebarrierptr   È       ä  0go.string."Content-Type"     8go.string."application/json"   ´
+  &net/http.Header.Set   ş       È
+  2runtime.stringtoslicebyte   ì       – 
+  .runtime.writebarrierptr   Ò 
+  .runtime.writebarrierptr   ¬!
+  .runtime.writebarrierptr   Ş!
+  0runtime.morestack_noctxt   0	  8"".autotmp_0129  "type.interface {} "".autotmp_0128 Ï(type.[1]interface {} "".autotmp_0126  *type.*[1]interface {} "".autotmp_0125  &type.[]interface {} "".autotmp_0124 ¯6type.*encoding/json.Decoder "".autotmp_0123  6type.*encoding/json.Decoder "".autotmp_0122 ¯type.io.Reader "".autotmp_0121 (type.[1]interface {} "".autotmp_0118 ß&type.[]interface {} "".autotmp_0117 ¯type.[]uint8 "".autotmp_0116  (type.net/http.Header "".autotmp_0115 ?,type."".SignInResponse "".autotmp_0113  type.int "".autotmp_0111 ïtype.string "".autotmp_0110 ÏDtype.gopkg.in/mgo.v2/bson.ObjectId "".autotmp_0109 ¯type.string "".&user Ÿ,type.*models.UserModel $encoding/json.rÂ·2 ïtype.io.Reader "".err ¯type.error "".respJson type.[]uint8 "".resp ,type."".SignInResponse "".tokenString type.string """.responseStatus Ïtype.int "".errMsg Ïtype.string "".err type.error "".decoder ¿6type.*encoding/json.Decoder "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter ("	¾		H		Ö € ¶ê	4šÀLæ@+i%*ˆR'"¡A)
+0R#wC-& X És]?©ac¹ø•C*g
+-+ TgclocalsÂ·e76d9788ffeb8eb69a0d7b2c884b94ed TgclocalsÂ·93a1b2c0c0a70e9a9793965aecfc7ac5   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş&"".UpdateUser.func1  à  ĞeH‹%    H„$ şÿÿH;A†Ã  Hìà  1ÀH‰„$    H‰„$¨   H‹ZH‰\$@H    H‰$H‹´$ø  Hƒş „}  H^@H|$H‹H‰H‹KH‰Oè    H‹L$H‹D$ H‰Œ$°   H‰L$`H‰„$¸   H‰D$hH    H‰$è    H‹L$H‰ÏHƒù „  1Àè    H‰L$PH‹l$`H‰)H‹l$h€=     …Ò  H‰iH‰L$HH    H‰$è    H‹L$H‰L$XH‹D$HH‰$H    H‰„$   H‰D$H‰Œ$˜   H‰L$è    H‹D$H‹\$ H‰œ$ˆ   H‰„$€   Hƒø „æ   H    H‰œ$À   HÇ„$È      1ÛH‰œ$    H‰œ$¨   Hœ$    Hƒû „  HÇ„$ğ      HÇ„$ø      H‰œ$è   H    H‰$Hœ$À   H‰\$HÇD$    è    H‹D$H‹L$ H‹œ$è   H‰„$   H‰H‰Œ$˜   €=     …‡  H‰KH‹œ$è   H‰$H‹œ$ğ   H‰\$H‹œ$ø   H‰\$è    H‹\$@H‰$è    H‹D$H‹\$XH‰$H‰D$8H‰D$è    H‹Œ$ğ  H‹„$è  H‹\$81íH9ë…ß   H‰$H‹X ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$ğ  H‰$H‹œ$è  H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$   H‰T$H‰Œ$  H‰L$H‰„$  H‰D$H‹œ$ğ  H‰$H‹œ$è  H‹[(ÿÓHÄà  ÃH‰$H‹X ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$È   H‹œ$ğ  H‰$H‹œ$è  H‹[0ÿÓH‹t$XH¼$  è    H    H‰$Hœ$  H‰\$HÇD$    è    H\$H‹H‰$H‹KH‰L$è    H‹l$H‹T$H‹L$ H‹D$(H‹\$0H‰\$xH‰D$pHƒø tHÄà  ÃH‰¬$Ğ   H‰l$H‰”$Ø   H‰T$H‰Œ$à   H‰L$H‹œ$ğ  H‰$H‹œ$è  H‹[(ÿÓéÊşÿÿLCL‰$H‰L$è    éfıÿÿ‰éãüÿÿLAL‰$H‰l$è    H‹L$Péüÿÿ‰éåûÿÿ‰é|ûÿÿè    éûÿÿN
+      €  type.io.Reader   ä
+  runtime.convI2I   º  4type.encoding/json.Decoder   Ì
+  "runtime.newobject   ş
+Ò  runtime.duffzero   ® 6runtime.writeBarrierEnabled   Ü  *type.models.UserModel   î
+  "runtime.newobject   ¢  ,type.*models.UserModel   à
+  >encoding/json.(*Decoder).Decode   ¶  Pgo.string."Error while decoding Request"   ô  type.string   ²
+  runtime.convT2E   ˆ 6runtime.writeBarrierEnabled   ô
+  log.Println   	
+  *mydb.GetUserFromToken   Ê	
+  mydb.UpdateUser   ¢
+       ¾
+  0go.string."Content-Type"   è
+  8go.string."application/json"   
+  &net/http.Header.Set   Ø       ò  Jgo.string."cant find user from token"   ˜
+  2runtime.stringtoslicebyte   ¼       à       ü  0go.string."Content-Type"   ¦  8go.string."application/json"   Ì
+  &net/http.Header.Set   –       ¶
+Ä  runtime.duffcopy   Ä  *type.models.UserModel   ‚
+  runtime.convT2E   ¶
+  *encoding/json.Marshal          È
+  .runtime.writebarrierptr   „
+  .runtime.writebarrierptr   ¾
+  "runtime.morestack   @À  *"".autotmp_0148  "type.interface {} "".autotmp_0147 ÿ(type.[1]interface {} "".autotmp_0144 ï&type.[]interface {} "".autotmp_0143 Ÿ6type.*encoding/json.Decoder "".autotmp_0142  6type.*encoding/json.Decoder "".autotmp_0141 ßtype.io.Reader "".autotmp_0140 *type.models.UserModel "".autotmp_0139  (type.net/http.Header "".autotmp_0138 ¿type.[]uint8 "".autotmp_0136 ¿type.string "".token ¿type.*string  "".&userToUpdate ,type.*models.UserModel $encoding/json.rÂ·2 ÿtype.io.Reader "".err ßtype.error "".respJson Ÿtype.[]uint8 "".user Ï,type.*models.UserModel "".err ¿type.error "".decoder ¯6type.*encoding/json.Decoder "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter *"ÀÅ¿Àç¿À  ğ	 dÂ=®Fæ(B#rB#pA#* F q4Q9©a-ß/ TgclocalsÂ·2873ad95fde0f35711b4f147a25ee418 TgclocalsÂ·319184a9c8b0aafa6e0a2f94e7966d87   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş."".UpdateUserName.func1  €  úeH‹%    HD$¸H;A†Û  HìÈ   H‹ZH‰$è    H‹D$H‰D$81íH9è…ï   H‹œ$Ø   H‰$H‹œ$Ğ   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$Ø   H‰$H‹œ$Ğ   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$°   H‰T$H‰Œ$¸   H‰L$H‰„$À   H‰D$H‹œ$Ø   H‰$H‹œ$Ğ   H‹[(ÿÓHÄÈ   ÃH    H‰$è    H‹\$H‰\$HH    H‰$H‹´$à   Hƒş „…  H^@H|$H‹H‰H‹KH‰Oè    H‹L$H‹D$ H‰Œ$€   H‰L$`H‰„$ˆ   H‰D$hH    H‰$è    H‹L$H‰ÏHƒù „  1Àè    H‰L$@H‹l$`H‰)H‹l$h€=     …Ú  H‰iH‹D$HH‰$H    H‰\$pH‰\$H‰D$xH‰D$è    H    HÇÀ   H    H‰$H‹\$HH‹+H‰l$H‰Œ$    H‰L$H‰„$¨   H‰D$è    H‹\$ Hƒû „R  H‹H‹kHƒø …ï   H‹œ$Ø   H‰$H‹œ$Ğ   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$Ø   H‰$H‹œ$Ğ   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$°   H‰T$H‰Œ$¸   H‰L$H‰„$À   H‰D$H‹œ$Ø   H‰$H‹œ$Ğ   H‹[(ÿÓHÄÈ   ÃH    HÇÀ   H    H‰$H‹\$HH‹+H‰l$H‰Œ$    H‰L$H‰„$¨   H‰D$è    H‹\$ Hƒû „÷  H‹H‹k1ÛH‰œ$   H‰œ$˜   H    H‰$H‰D$pH‰D$H‰l$xH‰l$Hœ$   H‰\$è    H‹œ$   H‰\$PH‹œ$˜   H‰\$XH‹\$XHƒû …ï   H‹œ$Ø   H‰$H‹œ$Ğ   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$Ø   H‰$H‹œ$Ğ   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$°   H‰T$H‰Œ$¸   H‰L$H‰„$À   H‰D$H‹œ$Ø   H‰$H‹œ$Ğ   H‹[(ÿÓHÄÈ   ÃH\$PH‰$H‹\$8H‰\$è    H‹œ$Ø   H‰$H‹œ$Ğ   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$È   H‹œ$Ø   H‰$H‹œ$Ğ   H‹[0ÿÓHÄÈ   Ã‰éşÿÿ‰é§üÿÿLAL‰$H‰l$è    H‹L$@éüÿÿ‰éİûÿÿ‰étûÿÿè    éúÿÿh
+      P
+  *mydb.GetUserFromToken   ²       Î  0go.string."Content-Type"   ø  8go.string."application/json"   
+  &net/http.Header.Set   è       ‚  Jgo.string."cant find user from token"   ¨
+  2runtime.stringtoslicebyte   Ì       æ  8type.map[string]interface {}   ø
+  "runtime.newobject   š  type.io.Reader   ş
+  runtime.convI2I   Ô  4type.encoding/json.Decoder   æ
+  "runtime.newobject   ˜
+Ò  runtime.duffzero   È 6runtime.writeBarrierEnabled   ş  :type.*map[string]interface {}   °
+  >encoding/json.(*Decoder).Decode   ¾  (go.string."username"   Ú  8type.map[string]interface {}   º	
+  4runtime.mapaccess1_faststr   ²
+       Î
+  0go.string."Content-Type"   ø
+  8go.string."application/json"   
+  &net/http.Header.Set   è       ‚  Pgo.string."mandatory field not provided"   ¨
+  2runtime.stringtoslicebyte   Ì       æ  (go.string."username"   ‚  8type.map[string]interface {}   â
+  4runtime.mapaccess1_faststr   À  type.string   ”
+  "runtime.assertE2T          º  0go.string."Content-Type"   ä  8go.string."application/json"   Š
+  &net/http.Header.Set   Ô       î  :go.string."Username is empty"   ”
+  2runtime.stringtoslicebyte   ¸       ô
+  &mydb.UpdateUserName   ¬       È  0go.string."Content-Type"   ò  8go.string."application/json"   ˜
+  &net/http.Header.Set   â       ®
+  .runtime.writebarrierptr   è
+  "runtime.morestack   @  *"".autotmp_0167 6type.*encoding/json.Decoder "".autotmp_0166  6type.*encoding/json.Decoder "".autotmp_0165 type.io.Reader "".autotmp_0164  (type.net/http.Header "".autotmp_0163  type.[]uint8 "".autotmp_0162  (type.net/http.Header "".autotmp_0160 otype.string "".autotmp_0159  "type.interface {} "".autotmp_0158  type.string "".autotmp_0157  type.[]uint8 "".autotmp_0156  (type.net/http.Header "".autotmp_0155  "type.interface {} "".autotmp_0154 Otype.string "".autotmp_0152 /type.[]uint8 "".&params ÿ:type.*map[string]interface {} $encoding/json.rÂ·2 Ïtype.io.Reader "".userName ïtype.string "".user Ÿ,type.*models.UserModel "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter D¿µ”E € „‚#R#r©)eR#r¸R#rR# 6 '”C4e‚—YF‡* TgclocalsÂ·61e1ac33ca96e64a60da5851be6ed843 TgclocalsÂ·1df902b75512ef79ccf7de34b400235c   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş0"".UpdateUserEmail.func1  €  âeH‹%    HD$°H;A†  HìĞ   H‹ZH‰$è    H‹D$H‰D$81íH9è…ï   H‹œ$à   H‰$H‹œ$Ø   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$à   H‰$H‹œ$Ø   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$¸   H‰T$H‰Œ$À   H‰L$H‰„$È   H‰D$H‹œ$à   H‰$H‹œ$Ø   H‹[(ÿÓHÄĞ   ÃH    H‰$è    H‹\$H‰\$PH    H‰$H‹´$è   Hƒş „¹  H^@H|$H‹H‰H‹KH‰Oè    H‹L$H‹D$ H‰Œ$ˆ   H‰L$XH‰„$   H‰D$`H    H‰$è    H‹L$H‰ÏHƒù „P  1Àè    H‰L$@H‹l$XH‰)H‹l$`€=     …  H‰iH‹D$PH‰$H    H‰\$xH‰\$H‰„$€   H‰D$è    H    HÇÀ   H    H‰$H‹\$PH‹+H‰l$H‰Œ$¨   H‰L$H‰„$°   H‰D$è    H‹\$ Hƒû „ƒ  H‹H‹kHƒø …ï   H‹œ$à   H‰$H‹œ$Ø   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$à   H‰$H‹œ$Ø   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$¸   H‰T$H‰Œ$À   H‰L$H‰„$È   H‰D$H‹œ$à   H‰$H‹œ$Ø   H‹[(ÿÓHÄĞ   ÃH    H‰$è    H‹\$H‰\$HH    HÇÀ   H    H‰$H‹\$PH‹+H‰l$H‰Œ$¨   H‰L$H‰„$°   H‰D$è    H‹\$ Hƒû „  H‹H‹k1ÛH‰œ$˜   H‰œ$    H    H‰$H‰D$xH‰D$H‰¬$€   H‰l$Hœ$˜   H‰\$è    H‹L$HH‹¬$    H‰iH‹¬$˜   €=     …ƒ  H‰)H‹iHƒı …ï   H‹œ$à   H‰$H‹œ$Ø   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$à   H‰$H‹œ$Ø   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$¸   H‰T$H‰Œ$À   H‰L$H‰„$È   H‰D$H‹œ$à   H‰$H‹œ$Ø   H‹[(ÿÓHÄĞ   ÃH‰$H‹\$8H‰\$è    H‹”$à   H‹Œ$Ø   H‹D$H‹\$H‰\$pH‰D$hHƒø tjH‰$H‹Y ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$È   H‹œ$à   H‰$H‹œ$Ø   H‹[0ÿÓé-ûÿÿH‰$H‹Y ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$à   H‰$H‹œ$Ø   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$¸   H‰T$H‰Œ$À   H‰L$H‰„$È   H‰D$H‹œ$à   H‰$H‹œ$Ø   H‹[(ÿÓéQúÿÿH‰$H‰l$è    H‹L$Héhıÿÿ‰éëüÿÿ‰évûÿÿLAL‰$H‰l$è    H‹L$@éÚúÿÿ‰é©úÿÿ‰é@úÿÿè    éÏøÿÿ€
+      P
+  *mydb.GetUserFromToken   ²       Î  0go.string."Content-Type"   ø  8go.string."application/json"   
+  &net/http.Header.Set   è       ‚  Jgo.string."cant find user from token"   ¨
+  2runtime.stringtoslicebyte   Ì       æ  8type.map[string]interface {}   ø
+  "runtime.newobject   š  type.io.Reader   ş
+  runtime.convI2I   Ô  4type.encoding/json.Decoder   æ
+  "runtime.newobject   ˜
+Ò  runtime.duffzero   È 6runtime.writeBarrierEnabled   ş  :type.*map[string]interface {}   ¶
+  >encoding/json.(*Decoder).Decode   Ä  "go.string."email"   à  8type.map[string]interface {}   À	
+  4runtime.mapaccess1_faststr   ¸
+       Ô
+  0go.string."Content-Type"   ş
+  8go.string."application/json"   ¤
+  &net/http.Header.Set   î       ˆ  Pgo.string."mandatory field not provided"   ®
+  2runtime.stringtoslicebyte   Ò       ì  type.string   ş
+  "runtime.newobject      "go.string."email"   ¼  8type.map[string]interface {}   œ
+  4runtime.mapaccess1_faststr   ú  type.string   Ô
+  "runtime.assertE2T   ’ 6runtime.writeBarrierEnabled   ú       –  0go.string."Content-Type"   À  8go.string."application/json"   æ
+  &net/http.Header.Set   °       Ê  4go.string."Email is empty"   ğ
+  2runtime.stringtoslicebyte   ”       Æ
+  (mydb.UpdateUserEmail   ²       Î  0go.string."Content-Type"   ø  8go.string."application/json"   
+  &net/http.Header.Set   è       †       ¢  0go.string."Content-Type"   Ì  8go.string."application/json"   ò
+  &net/http.Header.Set   ¼       Ö  >go.string."Email already exist"   ü
+  2runtime.stringtoslicebyte           Â
+  .runtime.writebarrierptr   –
+  .runtime.writebarrierptr   Ğ
+  "runtime.morestack   @   0"".autotmp_0188 Ÿ6type.*encoding/json.Decoder "".autotmp_0187  6type.*encoding/json.Decoder "".autotmp_0186 type.io.Reader "".autotmp_0185  type.[]uint8 "".autotmp_0184  (type.net/http.Header "".autotmp_0183  (type.net/http.Header "".autotmp_0182  type.[]uint8 "".autotmp_0181  (type.net/http.Header "".autotmp_0179 otype.string "".autotmp_0178  "type.interface {} "".autotmp_0177  type.string "".autotmp_0176  type.[]uint8 "".autotmp_0175  (type.net/http.Header "".autotmp_0174  "type.interface {} "".autotmp_0173 Otype.string "".autotmp_0171 /type.[]uint8 "".&userEmail type.*string "".&params ÿ:type.*map[string]interface {} $encoding/json.rÂ·2 ïtype.io.Reader "".err Ïtype.error "".user ¯,type.*models.UserModel "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter 8 Ÿ ÂŸ àŸ ì À  Ğ#R#r<7©,eR#räR#r2B#	B#r% > '”C4h‚âO\Tã*6 TgclocalsÂ·61e1ac33ca96e64a60da5851be6ed843 TgclocalsÂ·f2c449cd5c7826870e9d8e130bf4ca83   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş4"".UpdateUserPicture.func1  €  úeH‹%    HD$¸H;A†[  HìÈ   H‹ZH‰$è    H‹D$H‰D$81íH9è…ï   H‹œ$Ø   H‰$H‹œ$Ğ   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$Ø   H‰$H‹œ$Ğ   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$°   H‰T$H‰Œ$¸   H‰L$H‰„$À   H‰D$H‹œ$Ø   H‰$H‹œ$Ğ   H‹[(ÿÓHÄÈ   ÃH    H‰$è    H‹\$H‰\$HH    H‰$H‹´$à   Hƒş „  H^@H|$H‹H‰H‹KH‰Oè    H‹L$H‹D$ H‰Œ$€   H‰L$`H‰„$ˆ   H‰D$hH    H‰$è    H‹L$H‰ÏHƒù „œ  1Àè    H‰L$@H‹l$`H‰)H‹l$h€=     …Z  H‰iH‹D$HH‰$H    H‰\$pH‰\$H‰D$xH‰D$è    H    HÇÀ   H    H‰$H‹\$HH‹+H‰l$H‰Œ$    H‰L$H‰„$¨   H‰D$è    H‹\$ Hƒû „Ò  H‹H‹kHƒø …ç   H‹œ$Ø   H‰$H‹œ$Ğ   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$Ø   H‰$H‹œ$Ğ   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$°   H‰T$H‰Œ$¸   H‰L$H‰„$À   H‰D$H‹œ$Ø   H‰$H‹œ$Ğ   H‹[(ÿÓH    HÇÀ   H    H‰$H‹\$HH‹+H‰l$H‰Œ$    H‰L$H‰„$¨   H‰D$è    H‹\$ Hƒû „  H‹H‹k1ÛH‰œ$   H‰œ$˜   H    H‰$H‰D$pH‰D$H‰l$xH‰l$Hœ$   H‰\$è    H‹œ$   H‰\$PH‹œ$˜   H‰\$XH‹\$XHƒû …ï   H‹œ$Ø   H‰$H‹œ$Ğ   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$Ø   H‰$H‹œ$Ğ   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$°   H‰T$H‰Œ$¸   H‰L$H‰„$À   H‰D$H‹œ$Ø   H‰$H‹œ$Ğ   H‹[(ÿÓHÄÈ   ÃH\$PH‰$H‹\$8H‰\$è    éíûÿÿ‰ézşÿÿ‰é'ıÿÿLAL‰$H‰l$è    H‹L$@éüÿÿ‰é]üÿÿ‰éôûÿÿè    éƒúÿÿ^
+      P
+  *mydb.GetUserFromToken   ²       Î  0go.string."Content-Type"   ø  8go.string."application/json"   
+  &net/http.Header.Set   è       ‚  Jgo.string."cant find user from token"   ¨
+  2runtime.stringtoslicebyte   Ì       æ  8type.map[string]interface {}   ø
+  "runtime.newobject   š  type.io.Reader   ş
+  runtime.convI2I   Ô  4type.encoding/json.Decoder   æ
+  "runtime.newobject   ˜
+Ò  runtime.duffzero   È 6runtime.writeBarrierEnabled   ş  :type.*map[string]interface {}   °
+  >encoding/json.(*Decoder).Decode   ¾  >go.string."profile_picture_url"   Ú  8type.map[string]interface {}   º	
+  4runtime.mapaccess1_faststr   ²
+       Î
+  0go.string."Content-Type"   ø
+  8go.string."application/json"   
+  &net/http.Header.Set   è       ‚  Pgo.string."mandatory field not provided"   ¨
+  2runtime.stringtoslicebyte   Ì       Ö  >go.string."profile_picture_url"   ò  8type.map[string]interface {}   Ò
+  4runtime.mapaccess1_faststr   °  type.string   „
+  "runtime.assertE2T          ª  0go.string."Content-Type"   Ô  8go.string."application/json"   ú
+  &net/http.Header.Set   Ä       Ş  @go.string."picture url is empty"   „
+  2runtime.stringtoslicebyte   ¨       ä
+  ,mydb.UpdateUserPicture   ®
+  .runtime.writebarrierptr   è
+  "runtime.morestack   @  ("".autotmp_0206 6type.*encoding/json.Decoder "".autotmp_0205  6type.*encoding/json.Decoder "".autotmp_0204 type.io.Reader "".autotmp_0203  type.[]uint8 "".autotmp_0202  (type.net/http.Header "".autotmp_0200 otype.string "".autotmp_0199  "type.interface {} "".autotmp_0198  type.string "".autotmp_0197  type.[]uint8 "".autotmp_0196  (type.net/http.Header "".autotmp_0195  "type.interface {} "".autotmp_0194 Otype.string "".autotmp_0192 /type.[]uint8 "".&params ÿ:type.*map[string]interface {} $encoding/json.rÂ·2 Ïtype.io.Reader "".userPicture ïtype.string "".user Ÿ,type.*models.UserModel "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter (íb € x¨#R#r(#©)eR#r¸R#r	 0 '”C4e‘YF* TgclocalsÂ·61e1ac33ca96e64a60da5851be6ed843 TgclocalsÂ·1df902b75512ef79ccf7de34b400235c   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş6"".UpdateUserPassword.func1  à!  Ô!eH‹%    HD$ˆH;A†H  Hìø   H‹ZH‰$è    H‹D$H‰D$81íH9è…ï   H‹œ$  H‰$H‹œ$   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$  H‰$H‹œ$   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$à   H‰T$H‰Œ$è   H‰L$H‰„$ğ   H‰D$H‹œ$  H‰$H‹œ$   H‹[(ÿÓHÄø   ÃH    H‰$è    H‹\$H‰\$HH    H‰$H‹´$  Hƒş „ò  H^@H|$H‹H‰H‹KH‰Oè    H‹L$H‹D$ H‰Œ$    H‰L$PH‰„$¨   H‰D$XH    H‰$è    H‹L$H‰ÏHƒù „‰  1Àè    H‰L$@H‹l$PH‰)H‹l$X€=     …G  H‰iH‹D$HH‰$H    H‰œ$   H‰\$H‰„$˜   H‰D$è    H    HÇÀ   H    H‰$H‹\$HH‹+H‰l$H‰Œ$Ğ   H‰L$H‰„$Ø   H‰D$è    H‹\$ Hƒû „¹  H‹H‹kHƒø „²  H    HÇÀ   H    H‰$H‹\$HH‹+H‰l$H‰Œ$À   H‰L$H‰„$È   H‰D$è    H‹\$ Hƒû „M  H‹H‹kHƒø „M  H    HÇÀ   H    H‰$H‹\$HH‹+H‰l$H‰Œ$Ğ   H‰L$H‰„$Ø   H‰D$è    H‹\$ Hƒû „ò  H‹H‹k1ÛH‰œ$°   H‰œ$¸   H    H‰$H‰„$   H‰D$H‰¬$˜   H‰l$Hœ$°   H‰\$è    H‹œ$°   H‰\$`H‹œ$¸   H‰\$hH    HÇÀ   H    H‰$H‹\$HH‹+H‰l$H‰Œ$Ğ   H‰L$H‰„$Ø   H‰D$è    H‹\$ Hƒû „-  H‹H‹k1ÛH‰œ$°   H‰œ$¸   H    H‰$H‰„$   H‰D$H‰¬$˜   H‰l$Hœ$°   H‰\$è    H‹œ$°   H‰\$pH‹œ$¸   H‰\$xH‹\$xHƒû …ï   H‹œ$  H‰$H‹œ$   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$  H‰$H‹œ$   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$à   H‰T$H‰Œ$è   H‰L$H‰„$ğ   H‰D$H‹œ$  H‰$H‹œ$   H‹[(ÿÓHÄø   ÃH\$`H‰$H\$pH‰\$H‹\$8H‰\$è    H‹”$  H‹Œ$   H‹D$H‹\$ H‰œ$ˆ   H‰„$€   Hƒø „  H‰$H‹Y ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$  H‰$H‹œ$   H‹[0ÿÓH‹œ$ˆ   H‰$H‹œ$€   H‹[ ÿÓH‹L$H‹D$HÇ$    H‰Œ$À   H‰L$H‰„$È   H‰D$è    H‹T$H‹L$ H‹D$(H‰”$à   H‰T$H‰Œ$è   H‰L$H‰„$ğ   H‰D$H‹œ$  H‰$H‹œ$   H‹[(ÿÓHÄø   ÃH‰$H‹Y ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$È   H‹œ$  H‰$H‹œ$   H‹[0ÿÓë‘‰éÌüÿÿ‰éüÿÿH‹œ$  H‰$H‹œ$   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$  H‰$H‹œ$   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$à   H‰T$H‰Œ$è   H‰L$H‰„$ğ   H‰D$H‹œ$  H‰$H‹œ$   H‹[(ÿÓHÄø   Ã‰é¬úÿÿ‰é@úÿÿLAL‰$H‰l$è    H‹L$@é¡ùÿÿ‰épùÿÿ‰éùÿÿè    é–÷ÿÿˆ
+      P
+  *mydb.GetUserFromToken   ²       Î  0go.string."Content-Type"   ø  8go.string."application/json"   
+  &net/http.Header.Set   è       ‚  Jgo.string."cant find user from token"   ¨
+  2runtime.stringtoslicebyte   Ì       æ  8type.map[string]interface {}   ø
+  "runtime.newobject   š  type.io.Reader   ş
+  runtime.convI2I   Ô  4type.encoding/json.Decoder   æ
+  "runtime.newobject   ˜
+Ò  runtime.duffzero   È 6runtime.writeBarrierEnabled   ş  :type.*map[string]interface {}   ¼
+  >encoding/json.(*Decoder).Decode   Ê  0go.string."old_password"   æ  8type.map[string]interface {}   Æ	
+  4runtime.mapaccess1_faststr   ”
+  0go.string."new_password"   °
+  8type.map[string]interface {}   
+  4runtime.mapaccess1_faststr   Ş  0go.string."old_password"   ú  8type.map[string]interface {}   Ú
+  4runtime.mapaccess1_faststr   ¸  type.string   ˜
+  "runtime.assertE2T   Ú  0go.string."new_password"   ö  8type.map[string]interface {}   Ö
+  4runtime.mapaccess1_faststr   ´  type.string   ”
+  "runtime.assertE2T          º  0go.string."Content-Type"   ä  8go.string."application/json"   Š
+  &net/http.Header.Set   Ô       î  Bgo.string."new password is empty"   ”
+  2runtime.stringtoslicebyte   ¸       ˆ
+  .mydb.UpdateUserPassword   ˆ       ¤  0go.string."Content-Type"   Î  8go.string."application/json"   ô
+  &net/http.Header.Set   ¾       ò       Ğ
+  2runtime.stringtoslicebyte   ô       ˜       ´  0go.string."Content-Type"   Ş  8go.string."application/json"   „
+  &net/http.Header.Set   Î       ¢       ¾  0go.string."Content-Type"   è  8go.string."application/json"   
+  &net/http.Header.Set   Ø       ò  Rgo.string."mandatory fields not provided"   ˜
+  2runtime.stringtoslicebyte   ¼        ˆ!
+  .runtime.writebarrierptr   Â!
+  "runtime.morestack   @ğ  <"".autotmp_0233 ï6type.*encoding/json.Decoder "".autotmp_0232  6type.*encoding/json.Decoder "".autotmp_0231 ¯type.io.Reader "".autotmp_0230  (type.net/http.Header "".autotmp_0229  type.[]uint8 "".autotmp_0228  type.string "".autotmp_0227  (type.net/http.Header "".autotmp_0226  type.[]uint8 "".autotmp_0225  (type.net/http.Header "".autotmp_0223  type.string "".autotmp_0222  "type.interface {} "".autotmp_0221  type.string "".autotmp_0220 type.string "".autotmp_0219  "type.interface {} "".autotmp_0218  type.string "".autotmp_0217  type.[]uint8 "".autotmp_0216  (type.net/http.Header "".autotmp_0214 otype.string "".autotmp_0213  "type.interface {} "".autotmp_0212 Otype.string "".autotmp_0210 /type.[]uint8 "".&params ß:type.*map[string]interface {} $encoding/json.rÂ·2 Ïtype.io.Reader "".err ïtype.error "".newPassword type.string "".oldPassword ¯type.string "".user ÿ,type.*models.UserModel "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter DğïğµïğİïğãïğH ğ ¦ì#R#r©/Ê¾¾R#rDB#›B#%	R#r D '”C4kî__Fµu˜ò- TgclocalsÂ·20d646de57969b79bccb82c849506f4c TgclocalsÂ·d2e7407dcba3acfbcb7ae5a8f8598f23   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş$"".FetchUser.func1  à  ÜeH‹%    HD$ğH;A†  Hì   H‹ZH‰$è    H‹Œ$    H‹„$˜   H‹T$H‰T$81íH9ê…Ü   H‰$H‹X ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$    H‰$H‹œ$˜   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰T$xH‰T$H‰Œ$€   H‰L$H‰„$ˆ   H‰D$H‹œ$    H‰$H‹œ$˜   H‹[(ÿÓHÄ   ÃH‰$H‹X ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$È   H‹œ$    H‰$H‹œ$˜   H‹[0ÿÓH‹L$8H    H‰\$PH‰$H‰L$XH‰L$è    H‹l$H‹T$H‹L$ H‹D$(H‹\$0H‰\$HH‰D$@Hƒø tHÄ   ÃH‰l$`H‰l$H‰T$hH‰T$H‰L$pH‰L$H‹œ$    H‰$H‹œ$˜   H‹[(ÿÓéÿÿÿè    éÒıÿÿ&
+      P
+  *mydb.GetUserFromToken   ²       Î  0go.string."Content-Type"   ø  8go.string."application/json"   
+  &net/http.Header.Set   è       ‚  Jgo.string."cant find user from token"   ¨
+  2runtime.stringtoslicebyte   Æ       ê       †  0go.string."Content-Type"   °  8go.string."application/json"   Ö
+  &net/http.Header.Set           ´  ,type.*models.UserModel   ä
+  *encoding/json.Marshal   º       Ê
+  "runtime.morestack   @   "".autotmp_0238  (type.net/http.Header "".autotmp_0237 /type.[]uint8 "".err Ÿtype.error "".respJson _type.[]uint8 "".user ¯,type.*models.UserModel "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter ( Ÿ ¹Ÿ I ° @Æ#B#oB#B8  '| TgclocalsÂ·d328a7abb0999b61696a094998652cfe TgclocalsÂ·57020178141ca060aca86085906195cd   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş("".CreateGroup.func1  À  ºeH‹%    HD$ H;A†;  Hìà   H‹ZH‰$è    H‹D$H‰D$81íH9è…ï   H‹œ$ğ   H‰$H‹œ$è   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$ğ   H‰$H‹œ$è   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$È   H‰T$H‰Œ$Ğ   H‰L$H‰„$Ø   H‰D$H‹œ$ğ   H‰$H‹œ$è   H‹[(ÿÓHÄà   ÃH    H‰$è    H‹\$H‰\$HH    H‰$H‹´$ø   Hƒş „å  H^@H|$H‹H‰H‹KH‰Oè    H‹L$H‹D$ H‰Œ$ˆ   H‰L$XH‰„$   H‰D$`H    H‰$è    H‹L$H‰ÏHƒù „|  1Àè    H‰L$@H‹l$XH‰)H‹l$`€=     …:  H‰iH‹D$HH‰$H    H‰\$xH‰\$H‰„$€   H‰D$è    H    HÇÀ   H    H‰$H‹\$HH‹+H‰l$H‰Œ$¸   H‰L$H‰„$À   H‰D$è    H‹\$ Hƒû „¯  H‹H‹k1ÛH‰œ$¨   H‰œ$°   H    H‰$H‰D$xH‰D$H‰¬$€   H‰l$Hœ$¨   H‰\$è    H‹œ$¨   H‰\$hH‹œ$°   H‰\$pH\$hH‰$H‹\$8H‰\$Hƒ|$ „  HD$€   è    ¶\$HÇÅ   @8ë…ì   H‹œ$ğ   H‰$H‹œ$è   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$ğ   H‰$H‹œ$è   H‹[0ÿÓHÇ$    H    H‰\$HÇD$'   è    H‹T$H‹L$ H‹D$(H‰”$È   H‰T$H‰Œ$Ğ   H‰L$H‰„$Ø   H‰D$H‹œ$ğ   H‰$H‹œ$è   H‹[(ÿÓé ıÿÿH    H‰$è    H‹D$H‰D$PH‹l$pH‰hH‹l$h€=     …Á   H‰(H‹\$8Hƒû „¨   H«€   L@L‰D$H‰l$H-    H‰,$è    è    H‹$H‹D$H‰Œ$˜   H‰$H‰„$    H‰D$è    H‹L$H‹D$H‹\$PH‰„$À   H‰C(H‰Œ$¸   €=     uH‰K H‹\$PH‰$è    éEüÿÿLC L‰$H‰L$è    ëÙ‰éQÿÿÿH‰$H‰l$è    H‹D$Pé*ÿÿÿ‰%    é×ıÿÿ‰éJıÿÿLAL‰$H‰l$è    H‹L$@é®üÿÿ‰é}üÿÿ‰éüÿÿè    é£úÿÿ^
+      P
+  *mydb.GetUserFromToken   ²       Î  0go.string."Content-Type"   ø  8go.string."application/json"   
+  &net/http.Header.Set   è       ‚  >go.string."User does not exist"   ¨
+  2runtime.stringtoslicebyte   Ì       æ  8type.map[string]interface {}   ø
+  "runtime.newobject   š  type.io.Reader   ş
+  runtime.convI2I   Ô  4type.encoding/json.Decoder   æ
+  "runtime.newobject   ˜
+Ò  runtime.duffzero   È 6runtime.writeBarrierEnabled   ş  :type.*map[string]interface {}   ¶
+  >encoding/json.(*Decoder).Decode   Ä   go.string."name"   à  8type.map[string]interface {}   À	
+  4runtime.mapaccess1_faststr   
+  type.string   ø
+
+  "runtime.assertE2T   †
+  (mydb.IsExistingGroup   è       „  0go.string."Content-Type"   ®  8go.string."application/json"   Ô
+  &net/http.Header.Set          ¸  fgo.string."You already have a group with this name"   Ş
+  2runtime.stringtoslicebyte   ‚       –  ,type.models.GroupModel   ¨
+  "runtime.newobject   ä 6runtime.writeBarrierEnabled   Î  type.string   à
+  (runtime.typedmemmove   ê
+  @gopkg.in/mgo.v2/bson.NewObjectId   ¸
+  Bgopkg.in/mgo.v2/bson.ObjectId.Hex   Š 6runtime.writeBarrierEnabled   ´
+   mydb.CreateGroup   â
+  .runtime.writebarrierptr   
+  .runtime.writebarrierptr   î
+  .runtime.writebarrierptr   ¨
+  "runtime.morestack   @À  &"".autotmp_0255 ¿6type.*encoding/json.Decoder "".autotmp_0254  6type.*encoding/json.Decoder "".autotmp_0253 ¯type.io.Reader "".autotmp_0252  type.string "".autotmp_0251 Dtype.gopkg.in/mgo.v2/bson.ObjectId "".autotmp_0250  type.[]uint8 "".autotmp_0249  (type.net/http.Header "".autotmp_0247 otype.string "".autotmp_0246  "type.interface {} "".autotmp_0245 Otype.string "".autotmp_0243 /type.[]uint8 "".&newGroup Ÿ.type.*models.GroupModel "".&params ¯:type.*map[string]interface {} $encoding/json.rÂ·2 type.io.Reader "".groupName ïtype.string "".user Ï,type.*models.UserModel "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter À¿À° à
+ Œ´#R#r&!©,»BR#r#4\ F '”C4hE\G2ß\j/* TgclocalsÂ·20d646de57969b79bccb82c849506f4c TgclocalsÂ·baa8dccdb8ee09c7f3288cb80290552c   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş,"".RemoveContact.func1  À  ¾eH‹%    HD$˜H;A†}  Hìè   H‹ZH‰\$HH‹œ$   H‰$è    H‹D$H    HÇÁ   H    H‰$H‰D$H‰T$`H‰T$H‰L$hH‰L$è    H‹\$ Hƒû „
+  H‹H‹kH‰L$PH‰l$XH‹\$HH‰$è    H‹D$1íH9è…ï   H‹œ$ø   H‰$H‹œ$ğ   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$ø   H‰$H‹œ$ğ   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$Ğ   H‰T$H‰Œ$Ø   H‰L$H‰„$à   H‰D$H‹œ$ø   H‰$H‹œ$ğ   H‹[(ÿÓHÄè   ÃH\$PH‰$H‰D$@H‰D$Hƒ|$ „Á  HD$°   è    H‹T$@¶\$H‹D$€û „¯  L‹‚À   L9À‡˜  H‹Š°   I‰ÃM‰ÄH‰ÅHÿÅL‹‚¸   L‹ŠÀ   L9Å‡g  L‹’°   I)èI)éIƒù tHkíIêL‰ÇL‰Œ$°   L‰”$    H‰Œ$¸   H‰ÎL‰œ$À   L‰¤$È   L‰áL‰ØL‰\$xL‰„$¨   LÀL)àHƒø ~UH    H‰$H‰t$pH‰t$L‰\$H‰Œ$€   H‰L$H‰D$ è    L‹œ$À   H‹¼$¨   H‹t$(H‹\$0H‰\$xH‹L$8H    H‰$L‰ÛL‰İHıI‰ÈH‰Œ$€   H9Í‡|  I9ë‡s  L)İM)ØI‰ñH‰t$pIƒø tHkÛIÙH‰l$L‰D$L‰L$H‹œ$    H‰\$ H‰|$(H‹œ$°   H‰\$0è    H‹´$€   H‹œ$À   H‹¬$¨   HëH9ó‡ú   H‰ÙH‹T$pH‹\$@Hƒû „Ü   H‰Œ$   H‰‹¸   H‰´$˜   H‰³À   H‰”$ˆ   €=     …   H‰“°   H‹\$@H‰$è    H‹œ$ø   H‰$H‹œ$ğ   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$È   H‹œ$ø   H‰$H‹œ$ğ   H‹[0ÿÓéAıÿÿLƒ°   L‰$H‰T$è    é^ÿÿÿ‰éÿÿÿè    è    è    è    H‹œ$ø   H‰$H‹œ$ğ   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$ø   H‰$H‹œ$ğ   H‹[0ÿÓHÇ$    H    H‰\$HÇD$"   è    H‹T$H‹L$ H‹D$(H‰”$Ğ   H‰T$H‰Œ$Ø   H‰L$H‰„$à   H‰D$H‹œ$ø   H‰$H‹œ$ğ   H‹[(ÿÓéüÿÿ‰%    é3üÿÿ‰éïúÿÿè    éaúÿÿP
+      j
+  6github.com/gorilla/mux.Vars   ‚  <go.string."contact_identifier"     ,type.map[string]string   â
+  4runtime.mapaccess1_faststr   ¾
+  *mydb.GetUserFromToken   –       ²  0go.string."Content-Type"   Ü  8go.string."application/json"   ‚
+  &net/http.Header.Set   Ì       æ  >go.string."User does not exist"   Œ
+  2runtime.stringtoslicebyte   °       –
+  &"".isContactInArray   –
+  type.[]string   ê
+
+  &runtime.growslice_n   À  type.string   °
+  ,runtime.typedslicecopy   ş 6runtime.writeBarrierEnabled   ¶
+  .mydb.UpdateUserContacts   î       Š  0go.string."Content-Type"   ´  8go.string."application/json"   Ú
+  &net/http.Header.Set   ¤       Ô
+  .runtime.writebarrierptr   ö
+  $runtime.panicslice   „
+  $runtime.panicslice   ’
+  $runtime.panicslice    
+  $runtime.panicslice   Ü       ø  0go.string."Content-Type"   ¢  8go.string."application/json"   È
+  &net/http.Header.Set   ’       ¬  \go.string."Contact not in user's contact list"   Ò
+  2runtime.stringtoslicebyte   ö       ¬
+  "runtime.morestack   @Ğ  "".autotmp_0269 ïtype.[]string "".autotmp_0268  type.[]uint8 "".autotmp_0267  (type.net/http.Header "".autotmp_0266  (type.net/http.Header "".autotmp_0265 ¿type.[]string "".autotmp_0264 type.[]string "".autotmp_0262 _type.[]string "".autotmp_0261 /type.[]uint8 "".autotmp_0258 type.string "".token ¿type.*string "".user Ï,type.*models.UserModel *"".contact_identifier ¯type.string "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter Ğ‚ÏĞş   f†(WR#r<	êR#=
+R#r 2 4j¬ê£ƒ¦ TgclocalsÂ·948a0e540dd9ee4dc893ee9411d99e55 TgclocalsÂ·320d2f1ee39bc4bdf6275079066328af   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş&"".AddContact.func1  à"  Ø"eH‹%    H„$hÿÿÿH;A†‡  Hì  H‹ZH‰\$PH    H‰$è    H‹\$H‰\$pH    H‰$H‹´$0  Hƒş „9  H^@H|$H‹H‰H‹KH‰Oè    H‹L$H‹D$ H‰Œ$¸   H‰Œ$ˆ   H‰„$À   H‰„$   H    H‰$è    H‹L$H‰ÏHƒù „Ê  1Àè    H‰L$hH‹¬$ˆ   H‰)H‹¬$   €=     …‚  H‰iH‹D$pH‰$H    H‰œ$¨   H‰\$H‰„$°   H‰D$è    H    HÇÀ   H    H‰$H‹\$pH‹+H‰l$H‰Œ$Ø   H‰L$H‰„$à   H‰D$è    H‹\$ Hƒû „ô  H‹H‹kH‰¬$    H‰„$˜   Hƒø …ï   H‹œ$(  H‰$H‹œ$   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$(  H‰$H‹œ$   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$   H‰T$H‰Œ$  H‰L$H‰„$  H‰D$H‹œ$(  H‰$H‹œ$   H‹[(ÿÓHÄ  Ã1ÛH‰œ$È   H‰œ$Ğ   H    H‰$H‰D$H‰l$Hœ$È   H‰\$è    H‹œ$È   H‰$H‹œ$Ğ   H‰\$è    H‹D$H‰D$X1íH9è…ì   H‹œ$(  H‰$H‹œ$   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$(  H‰$H‹œ$   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$   H‰T$H‰Œ$  H‰L$H‰„$  H‰D$H‹œ$(  H‰$H‹œ$   H‹[(ÿÓé şÿÿH‹\$PH‰$è    H‹\$H‰\$H1ÛH‰œ$È   H‰œ$Ğ   H    H‰$H‹œ$˜   H‰\$H‹œ$    H‰\$Hœ$È   H‰\$è    ¶\$ €û „]  H‹\$HHƒû „  H‹K@H‰Œ$Ø   H‹CHH‹œ$Ğ   H‰„$à   H9Ã…%  H‹¬$È   H‰,$H‹¬$Ğ   H‰l$H‰L$H‰D$è    ¶\$ €û „ï   H‹œ$(  H‰$H‹œ$   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$(  H‰$H‹œ$   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$   H‰T$H‰Œ$  H‰L$H‰„$  H‰D$H‹œ$(  H‰$H‹œ$   H‹[(ÿÓHÄ  ÃH‹\$HHƒû „£  H‹“°   H‹ƒ¸   H‹«À   H‰¬$ø   1öH‰„$ğ   H‰D$8H‰”$è   H‹l$8H9î’  H‰T$`Hƒú „K  H‹:H‹BH‰t$@H‰|$xH‹\$XHƒû „$  L‹ƒ€   L‰„$Ø   H‹‹ˆ   H‰Œ$à   H‰„$€   H9Á…  L‰$H‰L$H‰|$H‰D$è    H‹t$@H‹T$`¶\$ €û „ï   H‹œ$(  H‰$H‹œ$   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$(  H‰$H‹œ$   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$   H‰T$H‰Œ$  H‰L$H‰„$  H‰D$H‹œ$(  H‰$H‹œ$   H‹[(ÿÓHÄ  ÃHƒÂHÿÆH‹l$8H9îŒnşÿÿH‹œ$(  H‰$H‹œ$   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$È   H‹œ$(  H‰$H‹œ$   H‹[0ÿÓH‹\$HH‰$Hƒ<$ t3Hƒ$@H‹\$XH‰\$Hƒ|$ tHD$€   è    éBúÿÿ‰%    ëä‰%    ëÄ‰éÕıÿÿ‰é®ıÿÿ‰éVıÿÿ‰éòûÿÿ‰éùÿÿLAL‰$H‰l$è    H‹L$héføÿÿ‰é/øÿÿ‰éÀ÷ÿÿè    éT÷ÿÿ|
+      \  8type.map[string]interface {}   n
+  "runtime.newobject     type.io.Reader   ô
+  runtime.convI2I   Ö  4type.encoding/json.Decoder   è
+  "runtime.newobject   š
+Ò  runtime.duffzero   Ö 6runtime.writeBarrierEnabled   Œ  :type.*map[string]interface {}   Ê
+  >encoding/json.(*Decoder).Decode   Ø  "go.string."email"   ô  8type.map[string]interface {}   Ô
+  4runtime.mapaccess1_faststr   ì       ˆ  0go.string."Content-Type"   ²  8go.string."application/json"   Ø
+  &net/http.Header.Set   ¢       ¼  :go.string."No email provided"   â
+  2runtime.stringtoslicebyte   †
+       Ä
+  type.string   „
+  "runtime.assertE2T   À
+  (mydb.GetUsersByEmail   ¢       ¾  0go.string."Content-Type"   è  8go.string."application/json"   
+  &net/http.Header.Set   Ø       ò  Fgo.string."No user with this Email"   ˜
+  2runtime.stringtoslicebyte   ¼       Ş
+  *mydb.GetUserFromToken   ¤  type.string   „
+  $runtime.assertE2T2   à
+   runtime.eqstring   ´       Ğ  0go.string."Content-Type"   ú  8go.string."application/json"    
+  &net/http.Header.Set   ê       „  Rgo.string."Same Email as the logged user"   ª
+  2runtime.stringtoslicebyte   Î       è
+   runtime.eqstring   Ğ       ì  0go.string."Content-Type"   –  8go.string."application/json"   ¼
+  &net/http.Header.Set   †          Rgo.string."user already in your contacts"   Æ
+  2runtime.stringtoslicebyte   ê       Ø       ô  0go.string."Content-Type"     8go.string."application/json"   Ä
+  &net/http.Header.Set           ô 
+  *mydb.AddContactToUser   Œ"
+  .runtime.writebarrierptr   Æ"
+  "runtime.morestack   @°  @"".autotmp_0295  type.string "".autotmp_0294  type.string "".autotmp_0293 ïtype.*string "".autotmp_0292 ¿type.int "".autotmp_0291 ¯type.int "".autotmp_0290  type.string "".autotmp_0288  type.string "".autotmp_0287 ß6type.*encoding/json.Decoder "".autotmp_0286  6type.*encoding/json.Decoder "".autotmp_0285 ¿type.io.Reader "".autotmp_0284  (type.net/http.Header "".autotmp_0283  type.[]uint8 "".autotmp_0282  (type.net/http.Header "".autotmp_0281 _type.[]string "".autotmp_0280  type.[]uint8 "".autotmp_0279  (type.net/http.Header "".autotmp_0278  type.[]uint8 "".autotmp_0277  (type.net/http.Header "".autotmp_0276 Ÿtype.string "".autotmp_0275 /type.[]uint8 "".autotmp_0273  "type.interface {} "".autotmp_0272 type.string "".token type.*string "".&params Ï:type.*map[string]interface {} $encoding/json.rÂ·2 Ÿtype.io.Reader "".tmpContact ¿type.string "".user Ÿ,type.*models.UserModel "".contact ÿ,type.*models.UserModel "".email ÿ"type.interface {} "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter 8"°ê¯°£¯°Í¯°± ° °Ä+µ/cR#r<7\R#r0+ÅR#rqnR#r	R#5 R 6C:qEM‹
+P	İS™™5„L+ TgclocalsÂ·20d646de57969b79bccb82c849506f4c TgclocalsÂ·705d437c22478be6175921b857cd6ddd   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş2"".FetchUserContact.func1  À  °eH‹%    HD$H;A†ö  Hìğ   H‹ZH‰\$@H‹œ$  H‰$è    H‹\$H‰\$8H    H‰$è    H‹\$H‰\$XH    HÇÀ   H    H‰$H‹\$8H‰\$H‰Œ$°   H‰L$H‰„$¸   H‰D$è    H‹\$ Hƒû „Y  H‹H‹CH‹\$XH‰„$¨   H‰CH‰Œ$    €=     …  H‰H‹\$@H‰$è    H‹D$1íH9è…ï   H‹œ$   H‰$H‹œ$ø   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$   H‰$H‹œ$ø   H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$Ø   H‰T$H‰Œ$à   H‰L$H‰„$è   H‰D$H‹œ$   H‰$H‹œ$ø   H‹[(ÿÓHÄğ   ÃH‹\$XH‰$H‰D$Hƒ|$ „ã  HD$°   è    ¶\$€û „Û  H‹\$XH‰$è    H‹\$H‰\$PH    H‰$HÇD$    HÇD$    HÇD$    è    H‹L$ H    H‰œ$   HÇ„$˜      H‹\$PH‰œ$ˆ   H    H‰œ$€   H    H‰$H‰L$HH‰L$Hœ$   H‰\$Hœ$€   H‰\$è    H‹L$HH    H‰\$pH‰$H‰L$xH‰L$è    H‹\$H‰œ$À   H‹\$H‰œ$È   H‹\$ H‰œ$Ğ   H‹D$(H‹\$0H‰\$hH‰D$`Hƒø tHÄğ   ÃH‹œ$   H‰$H‹œ$ø   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$È   H‹œ$   H‰$H‹œ$ø   H‹[0ÿÓH‹œ$À   H‰\$H‹œ$È   H‰\$H‹œ$Ğ   H‰\$H‹œ$   H‰$H‹œ$ø   H‹[(ÿÓéçıÿÿH‹œ$   H‰$H‹œ$ø   H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$   H‰$H‹œ$ø   H‹[0ÿÓHÇ$    H    H‰\$HÇD$+   è    H‹T$H‹L$ H‹D$(H‰”$Ø   H‰T$H‰Œ$à   H‰L$H‰„$è   H‰D$H‹œ$   H‰$H‹œ$ø   H‹[(ÿÓéûüÿÿ‰%    éıÿÿH‰$H‰L$è    é×ûÿÿ‰é ûÿÿè    éèúÿÿV
+      j
+  6github.com/gorilla/mux.Vars   Œ  type.string   
+  "runtime.newobject   À  <go.string."contact_identifier"   Ü  ,type.map[string]string   ¶
+  4runtime.mapaccess1_faststr     6runtime.writeBarrierEnabled   Ğ
+  *mydb.GetUserFromToken   ¨       Ä  0go.string."Content-Type"   î  8go.string."application/json"   ”
+  &net/http.Header.Set   Ş       ø  >go.string."User does not exist"   
+  2runtime.stringtoslicebyte   Â       
+  &"".isContactInArray   Ö
+  $mydb.GetUserFromId   ø  6type.gopkg.in/mgo.v2/bson.M   À	
+  runtime.makemap   Ø	  &go.string."contact"   ¨
+  ,type.*models.UserModel   Æ
+  6type.gopkg.in/mgo.v2/bson.M    
+  $runtime.mapassign1   ¸  6type.gopkg.in/mgo.v2/bson.M   è
+  *encoding/json.Marshal   ²       Î  0go.string."Content-Type"   ø  8go.string."application/json"   
+  &net/http.Header.Set   è       ê       ¨       Ä  0go.string."Content-Type"   î  8go.string."application/json"   ”
+  &net/http.Header.Set   Ş       ø  ngo.string."Contact identifier not in user contact list"   
+  2runtime.stringtoslicebyte   Â       ü
+  .runtime.writebarrierptr   
+  "runtime.morestack   @à  $"".autotmp_0308 ß"type.interface {} "".autotmp_0307 ¿type.string "".autotmp_0306  type.[]uint8 "".autotmp_0305  (type.net/http.Header "".autotmp_0304  (type.net/http.Header "".autotmp_0303 Ï6type.gopkg.in/mgo.v2/bson.M "".autotmp_0302 ¿,type.*models.UserModel "".autotmp_0301 /type.[]uint8 "".autotmp_0299 Ÿtype.string "".autotmp_0298 type.string "".token ßtype.*string ,"".&contact_identifier ¯type.*string "".err Ÿtype.error "".respJson _type.[]uint8 "".vars ï,type.map[string]string "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter *àËßàÕßàß  
+ x¢(›R#r$-	úR#A	R#r @ 4LM-ú5
+p$fœˆ# TgclocalsÂ·2e1bf46b5fcbe5d44bfd3cc06dee2b85 TgclocalsÂ·e22f419a9e214bcb6d29ec3b57a3f775   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş4"".FetchUserContacts.func1  €  âeH‹%    H„$şÿÿH;A†Œ  Hìh  H‹ZH‰\$XH    H‰œ$È   HÇ„$Ğ      1ÛH‰œ$¸   H‰œ$À   Hœ$¸   Hƒû „6  HÇ„$     HÇ„$     H‰œ$  H    H‰$Hœ$È   H‰\$HÇD$    è    H‹L$H‹D$ H‹œ$  H‰Œ$¨   H‰H‰„$°   €=     …§  H‰CH‹œ$  H‰$H‹œ$  H‰\$H‹œ$  H‰\$è    H‹\$XH‰$è    H‹D$H‰D$P1íH9è…ï   H‹œ$x  H‰$H‹œ$p  H‹[ ÿÓH‹\$H‰$H    H‰\$HÇD$   H    H‰\$HÇD$    è    HÇD$  H‹œ$x  H‰$H‹œ$p  H‹[0ÿÓHÇ$    H    H‰\$HÇD$   è    H‹T$H‹L$ H‹D$(H‰”$h  H‰T$H‰Œ$p  H‰L$H‰„$x  H‰D$H‹œ$x  H‰$H‹œ$p  H‹[(ÿÓHÄh  Ã1ÛH‰œ$ğ   H‰œ$ø   H‰œ$   H    H‰$è    H‹\$H‰\$pH‹\$PHƒû „  H‹“°   H‹ƒ¸   H‹«À   H‰¬$`  1ÉH‰„$X  H‰D$@H‰”$P  H‰ĞH‹l$@H9éî   H‰D$`Hƒø „Á  H‹H‹@H‰L$HH‹\$pH‰„$    H‰CH‰”$˜   €=     …|  H‰H‹\$pH‰$è    H‹t$Hƒş „U  H¼$   è    H‹Œ$ğ   H‹œ$ø   H‹”$   H‰ØHÿÃH9Ó‡Ë  H‰œ$ø   H‰ËH‰ÅHiíÈ   HëH¬$   H‰\$H‰l$H-    H‰,$è    H‹D$`H‹L$HHƒÀHÿÁH‹l$@H9éŒÿÿÿHÇD$È   H‹œ$x  H‰$H‹œ$p  H‹[0ÿÓH‹œ$ğ   H‰œ$8  H‹œ$ø   H‰œ$@  H‹œ$   H‰œ$H  H    H‰$HÇD$    HÇD$    HÇD$    è    H‹\$ H‰\$hH    H‰œ$È   HÇ„$Ğ      H    H‰$Hœ$8  H‰\$HÇD$    è    H‹\$H‰œ$ˆ   H‹\$ H‰œ$   H    H‰$H‹\$hH‰\$Hœ$È   H‰\$Hœ$ˆ   H‰\$è    H‹D$hH    H‰œ$¨   H‰$H‰„$°   H‰D$è    H‹l$H‹T$H‹L$ H‹D$(H‹\$0H‰œ$€   H‰D$xHƒø tHÄh  ÃH    H‰œ$È   HÇ„$Ğ      H‰¬$Ø   H‰¬$   H‰”$à   H‰”$(  H‰Œ$è   H‰Œ$0  1ÛH‰œ$€  H‰œ$ˆ  H‰œ$  H‰œ$˜  Hœ$€  Hƒû „w  HÇ„$     HÇ„$     H‰œ$  H    H‰$Hœ$È   H‰\$HÇD$    è    H‹L$H‹D$ H‹œ$  H‰Œ$¨   H‰H‰„$°   €=     …è   H‰CH    H‰$Hœ$   H‰\$HÇD$    è    H‹L$H‹D$ H‹œ$  HƒÃH‰Œ$¨   H‰H‰„$°   €=     uuH‰CH‹œ$  H‰$H‹œ$  H‰\$H‹œ$  H‰\$è    H‹œ$Ø   H‰\$H‹œ$à   H‰\$H‹œ$è   H‰\$H‹œ$x  H‰$H‹œ$p  H‹[(ÿÓéEûÿÿLCL‰$H‰D$è    éxÿÿÿLCL‰$H‰D$è    éÿÿÿ‰é‚şÿÿH-    H‰,$H‰L$H‰D$H‰T$H‰\$ è    H‹L$(H‹\$0H‹T$8H‰ØHÿÃH‰œ$ø   H‰”$   H‰Œ$ğ   éçûÿÿ‰é¤ûÿÿH‰$H‰T$è    étûÿÿ‰ é8ûÿÿ‰éİúÿÿLCL‰$H‰D$è    éFùÿÿ‰éÃøÿÿè    éOøÿÿ`
+      \   go.string."here"   š  type.string   Ø
+  runtime.convT2E   ® 6runtime.writeBarrierEnabled   š
+  log.Println   ¶
+  *mydb.GetUserFromToken   ˜       ´  0go.string."Content-Type"   Ş  8go.string."application/json"   „
+  &net/http.Header.Set   Î       è  >go.string."User does not exist"   
+  2runtime.stringtoslicebyte   ²       €	  type.string   ’	
+  "runtime.newobject   Â 6runtime.writeBarrierEnabled   ò
+  $mydb.GetUserFromId   ª
+Ä  runtime.duffcopy   Ú  *type.models.UserModel   ì
+  (runtime.typedmemmove   ô       Ş  6type.gopkg.in/mgo.v2/bson.M   ¦
+  runtime.makemap   È  (go.string."contacts"   ş  .type.[]models.UserModel   ¼
+  runtime.convT2E   ş  6type.gopkg.in/mgo.v2/bson.M   Ø
+  $runtime.mapassign1   ğ  6type.gopkg.in/mgo.v2/bson.M   ¬
+  *encoding/json.Marshal   ¢   go.string."resp"   à  type.string   
+  runtime.convT2E   ô 6runtime.writeBarrierEnabled   ˜  type.[]uint8   Ö
+  runtime.convT2E   ´ 6runtime.writeBarrierEnabled   ˜
+  log.Println          È
+  .runtime.writebarrierptr   ö
+  .runtime.writebarrierptr   œ  .type.[]models.UserModel   Ö
+  "runtime.growslice   ä
+  .runtime.writebarrierptr   ®
+  .runtime.writebarrierptr   Ğ
+  "runtime.morestack   @Ğ	  <"".autotmp_0338  "type.interface {} "".autotmp_0337  "type.interface {} "".autotmp_0336 Ï(type.[2]interface {} "".autotmp_0333  &type.[]interface {} "".autotmp_0332 ¿"type.interface {} "".autotmp_0331  type.string "".autotmp_0330 *type.models.UserModel "".autotmp_0329 Ÿtype.string "".autotmp_0328 type.*string "".autotmp_0327 Ïtype.int "".autotmp_0326 ¿type.int "".autotmp_0325 ÿ"type.interface {} "".autotmp_0324 ß(type.[1]interface {} "".autotmp_0321 ¿&type.[]interface {} "".autotmp_0320 type.[]uint8 "".autotmp_0319  type.string "".autotmp_0318 ÿ6type.gopkg.in/mgo.v2/bson.M "".autotmp_0317 ß.type.[]models.UserModel "".autotmp_0315 ¯type.[]string "".autotmp_0314 ÿtype.[]uint8 "".autotmp_0312 ¿type.string "".token Ÿtype.*string "".&tmpContact ïtype.*string "".err ßtype.error "".respJson Ÿtype.[]uint8 "".contactList ï.type.[]models.UserModel "".user ¯,type.*models.UserModel "".next 02type.net/http.HandlerFunc "".r  ,type.*net/http.Request "".w  8type.net/http.ResponseWriter *"Ğ	€Ï	Ğ	êÏ	Ğ	² À vê+æR#r²‹#¿‚A5] V «a®°ÂXKN*ù½DG	G%* TgclocalsÂ·63a709a576842031d629217b1e3ea939 TgclocalsÂ·e4e9e128533b5ce673be7ec85f57104d   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş"".init  €  äeH‹%    H;av\¶    €û t¶    €ûuÃè    Æ    è    è    è    è    è    è    è    è    è    Æ    Ãè    ë 
+      $  "".initdoneÂ·   <  "".initdoneÂ·   R
+  "runtime.throwinit   b "".initdoneÂ·   n
+  $encoding/json.init   x
+  net/http.init   ‚
+  log.init   Œ
+  0core/authentication.init   –
+  6github.com/gorilla/mux.init    
+  Ngithub.com/lonelycode/go-uuid/uuid.init   ª
+  mydb.init   ´
+  2gopkg.in/mgo.v2/bson.init   ¾
+  Fgithub.com/codegangsta/negroni.init   Ê "".initdoneÂ·   Ø
+  0runtime.morestack_noctxt        € € 
+º
+€ 
+ (X TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goşNtype..hash."".FBTokenValidationResponse    ŒeH‹%    H;avmHƒìH‹\$ H‰$Hƒ<$ tPH‹\$(H‰\$è    H‹D$H‹\$ H‰$Hƒ<$ t#Hƒ$H‰D$(H‰D$è    H‹\$H‰\$0HƒÄÃ‰%    ëÔ‰%    ë§è    ézÿÿÿ
+      \
+  runtime.strhash   ®
+  runtime.strhash   ú
+  0runtime.morestack_noctxt   00  "".~r2  type.uintptr "".h type.uintptr "".p  Dtype.*"".FBTokenValidationResponse 0V/0&   
+ -c TgclocalsÂ·0b86ef39f3fed835f14ba5f4d7c62fa2 TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goşJtype..eq."".FBTokenValidationResponse à  ÂeH‹%    H;a†  HƒìHH‹\$PHƒû „ê   H‹3H‹KH‹\$XHƒû „Í   H‹H‹CH9Á…³   H‰t$8H‰4$H‰L$@H‰L$H‰T$(H‰T$H‰D$0H‰D$è    ¶\$ €û t}H‹\$PHƒû tnH‹SH‹CH‹\$XHƒû tWH‹sH‹KH9Èu@H‰T$(H‰$H‰D$0H‰D$H‰t$8H‰t$H‰L$@H‰L$è    ¶\$ €û t
+ÆD$`HƒÄHÃÆD$` HƒÄHÃ‰ë¥‰ëÆD$` HƒÄHÃ‰é,ÿÿÿ‰éÿÿÿè    éßşÿÿ
+      è
+   runtime.eqstring   ª
+   runtime.eqstring   °
+  0runtime.morestack_noctxt   0  "".autotmp_0347  type.string "".autotmp_0346  type.string "".autotmp_0345 ?type.string "".autotmp_0344 type.string "".~r2  type.bool "".q Dtype.*"".FBTokenValidationResponse "".p  Dtype.*"".FBTokenValidationResponse 2Õ	' ° °  s½ TgclocalsÂ·3bb21ca8fe1d99a3e492463bd711418a TgclocalsÂ·a8eabfc4a4514ed6b3b0c61e9680e440   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş4type..hash.[2]interface {} à  ÊeH‹%    H;a†ˆ   Hƒì(H‹L$81ÀHÇD$   H‹l$H9è}\H‰D$ H‰ÅH‰ÈHÁÀH»¿c»kïR H¯ØH‰ØH‹\$0Hƒû t;HÁåHëH‰$H‰D$8H‰D$è    H‹L$H‹D$ HÿÀH‹l$H9è|¤H‰L$@HƒÄ(Ã‰ëÁè    é[ÿÿÿ
+      ä
+  (runtime.nilinterhash   ¸
+  0runtime.morestack_noctxt   0P  
+"".autotmp_0349 type.int "".autotmp_0348 type.int "".~r2  type.uintptr "".h type.uintptr "".p  *type.*[2]interface {} POP ° ° 
+ q? TgclocalsÂ·0b86ef39f3fed835f14ba5f4d7c62fa2 TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş0type..eq.[2]interface {} à  ÖeH‹%    H;a†Î   HƒìX1ÀHÇD$(   H‹l$(H9è’   H‰D$0H‹\$hHƒû „–   H‰ÅHÁåHëH‹H‹sH‹\$`Hƒû tvH‰ÅHÁåHëH‹H‹SH9ÈuVH‰D$8H‰$H‰T$@H‰T$H‰L$HH‰L$H‰t$PH‰t$è    ¶\$ €û t H‹D$0HÿÀH‹l$(H9èŒnÿÿÿÆD$pHƒÄXÃÆD$p HƒÄXÃ‰ë†‰écÿÿÿè    éÿÿÿ
+      ¼
+  runtime.efaceeq   Ä
+  0runtime.morestack_noctxt   0°  "".autotmp_0353 ?"type.interface {} "".autotmp_0352 "type.interface {} "".autotmp_0351 _type.int "".autotmp_0350 Otype.int "".~r2  type.bool "".q *type.*[2]interface {} "".p  *type.*[2]interface {} &°´¯°	¯° ğ ğ  S TgclocalsÂ·3bb21ca8fe1d99a3e492463bd711418a TgclocalsÂ·a8eabfc4a4514ed6b3b0c61e9680e440   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş8type..hash."".SignInResponse    ŒeH‹%    H;avmHƒìH‹\$ H‰$Hƒ<$ tPH‹\$(H‰\$è    H‹D$H‹\$ H‰$Hƒ<$ t#Hƒ$H‰D$(H‰D$è    H‹\$H‰\$0HƒÄÃ‰%    ëÔ‰%    ë§è    ézÿÿÿ
+      \
+  runtime.strhash   ®
+  runtime.strhash   ú
+  0runtime.morestack_noctxt   00  "".~r2  type.uintptr "".h type.uintptr "".p  .type.*"".SignInResponse 0V/0&   
+ -c TgclocalsÂ·0b86ef39f3fed835f14ba5f4d7c62fa2 TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş4type..eq."".SignInResponse à  ÂeH‹%    H;a†  HƒìHH‹\$PHƒû „ê   H‹3H‹KH‹\$XHƒû „Í   H‹H‹CH9Á…³   H‰t$8H‰4$H‰L$@H‰L$H‰T$(H‰T$H‰D$0H‰D$è    ¶\$ €û t}H‹\$PHƒû tnH‹SH‹CH‹\$XHƒû tWH‹sH‹KH9Èu@H‰T$(H‰$H‰D$0H‰D$H‰t$8H‰t$H‰L$@H‰L$è    ¶\$ €û t
+ÆD$`HƒÄHÃÆD$` HƒÄHÃ‰ë¥‰ëÆD$` HƒÄHÃ‰é,ÿÿÿ‰éÿÿÿè    éßşÿÿ
+      è
+   runtime.eqstring   ª
+   runtime.eqstring   °
+  0runtime.morestack_noctxt   0  "".autotmp_0357  type.string "".autotmp_0356  type.string "".autotmp_0355 ?type.string "".autotmp_0354 type.string "".~r2  type.bool "".q .type.*"".SignInResponse "".p  .type.*"".SignInResponse 2Õ	' ° °  s½ TgclocalsÂ·3bb21ca8fe1d99a3e492463bd711418a TgclocalsÂ·a8eabfc4a4514ed6b3b0c61e9680e440   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş4type..hash.[1]interface {} à  ÊeH‹%    H;a†ˆ   Hƒì(H‹L$81ÀHÇD$   H‹l$H9è}\H‰D$ H‰ÅH‰ÈHÁÀH»¿c»kïR H¯ØH‰ØH‹\$0Hƒû t;HÁåHëH‰$H‰D$8H‰D$è    H‹L$H‹D$ HÿÀH‹l$H9è|¤H‰L$@HƒÄ(Ã‰ëÁè    é[ÿÿÿ
+      ä
+  (runtime.nilinterhash   ¸
+  0runtime.morestack_noctxt   0P  
+"".autotmp_0359 type.int "".autotmp_0358 type.int "".~r2  type.uintptr "".h type.uintptr "".p  *type.*[1]interface {} POP ° ° 
+ q? TgclocalsÂ·0b86ef39f3fed835f14ba5f4d7c62fa2 TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş0type..eq.[1]interface {} à  ÖeH‹%    H;a†Î   HƒìX1ÀHÇD$(   H‹l$(H9è’   H‰D$0H‹\$hHƒû „–   H‰ÅHÁåHëH‹H‹sH‹\$`Hƒû tvH‰ÅHÁåHëH‹H‹SH9ÈuVH‰D$8H‰$H‰T$@H‰T$H‰L$HH‰L$H‰t$PH‰t$è    ¶\$ €û t H‹D$0HÿÀH‹l$(H9èŒnÿÿÿÆD$pHƒÄXÃÆD$p HƒÄXÃ‰ë†‰écÿÿÿè    éÿÿÿ
+      ¼
+  runtime.efaceeq   Ä
+  0runtime.morestack_noctxt   0°  "".autotmp_0363 ?"type.interface {} "".autotmp_0362 "type.interface {} "".autotmp_0361 _type.int "".autotmp_0360 Otype.int "".~r2  type.bool "".q *type.*[1]interface {} "".p  *type.*[1]interface {} &°´¯°	¯° ğ ğ  S TgclocalsÂ·3bb21ca8fe1d99a3e492463bd711418a TgclocalsÂ·a8eabfc4a4514ed6b3b0c61e9680e440   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş4type..hash.[4]interface {} à  ÊeH‹%    H;a†ˆ   Hƒì(H‹L$81ÀHÇD$   H‹l$H9è}\H‰D$ H‰ÅH‰ÈHÁÀH»¿c»kïR H¯ØH‰ØH‹\$0Hƒû t;HÁåHëH‰$H‰D$8H‰D$è    H‹L$H‹D$ HÿÀH‹l$H9è|¤H‰L$@HƒÄ(Ã‰ëÁè    é[ÿÿÿ
+      ä
+  (runtime.nilinterhash   ¸
+  0runtime.morestack_noctxt   0P  
+"".autotmp_0365 type.int "".autotmp_0364 type.int "".~r2  type.uintptr "".h type.uintptr "".p  *type.*[4]interface {} POP ° ° 
+ q? TgclocalsÂ·0b86ef39f3fed835f14ba5f4d7c62fa2 TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş0type..eq.[4]interface {} à  ÖeH‹%    H;a†Î   HƒìX1ÀHÇD$(   H‹l$(H9è’   H‰D$0H‹\$hHƒû „–   H‰ÅHÁåHëH‹H‹sH‹\$`Hƒû tvH‰ÅHÁåHëH‹H‹SH9ÈuVH‰D$8H‰$H‰T$@H‰T$H‰L$HH‰L$H‰t$PH‰t$è    ¶\$ €û t H‹D$0HÿÀH‹l$(H9èŒnÿÿÿÆD$pHƒÄXÃÆD$p HƒÄXÃ‰ë†‰écÿÿÿè    éÿÿÿ
+      ¼
+  runtime.efaceeq   Ä
+  0runtime.morestack_noctxt   0°  "".autotmp_0369 ?"type.interface {} "".autotmp_0368 "type.interface {} "".autotmp_0367 _type.int "".autotmp_0366 Otype.int "".~r2  type.bool "".q *type.*[4]interface {} "".p  *type.*[4]interface {} &°´¯°	¯° ğ ğ  S TgclocalsÂ·3bb21ca8fe1d99a3e492463bd711418a TgclocalsÂ·a8eabfc4a4514ed6b3b0c61e9680e440   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş(type..hash.[8]string à  ÊeH‹%    H;a†ˆ   Hƒì(H‹L$81ÀHÇD$   H‹l$H9è}\H‰D$ H‰ÅH‰ÈHÁÀH»¿c»kïR H¯ØH‰ØH‹\$0Hƒû t;HÁåHëH‰$H‰D$8H‰D$è    H‹L$H‹D$ HÿÀH‹l$H9è|¤H‰L$@HƒÄ(Ã‰ëÁè    é[ÿÿÿ
+      ä
+  runtime.strhash   ¸
+  0runtime.morestack_noctxt   0P  
+"".autotmp_0371 type.int "".autotmp_0370 type.int "".~r2  type.uintptr "".h type.uintptr "".p  type.*[8]string POP ° ° 
+ q? TgclocalsÂ·0b86ef39f3fed835f14ba5f4d7c62fa2 TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş$type..eq.[8]string à  ÖeH‹%    H;a†Î   HƒìX1ÀHÇD$(   H‹l$(H9è’   H‰D$0H‹\$`Hƒû „–   H‰ÅHÁåHëH‹3H‹KH‹\$hHƒû tvH‰ÅHÁåHëH‹H‹CH9ÁuVH‰t$HH‰4$H‰L$PH‰L$H‰T$8H‰T$H‰D$@H‰D$è    ¶\$ €û t H‹D$0HÿÀH‹l$(H9èŒnÿÿÿÆD$pHƒÄXÃÆD$p HƒÄXÃ‰ë†‰écÿÿÿè    éÿÿÿ
+      ¼
+   runtime.eqstring   Ä
+  0runtime.morestack_noctxt   0°  "".autotmp_0375 ?type.string "".autotmp_0374 type.string "".autotmp_0373 _type.int "".autotmp_0372 Otype.int "".~r2  type.bool "".q type.*[8]string "".p  type.*[8]string &°´¯°	¯° ğ ğ  S TgclocalsÂ·3bb21ca8fe1d99a3e492463bd711418a TgclocalsÂ·a8eabfc4a4514ed6b3b0c61e9680e440   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş4type..hash.[8]interface {} à  ÊeH‹%    H;a†ˆ   Hƒì(H‹L$81ÀHÇD$   H‹l$H9è}\H‰D$ H‰ÅH‰ÈHÁÀH»¿c»kïR H¯ØH‰ØH‹\$0Hƒû t;HÁåHëH‰$H‰D$8H‰D$è    H‹L$H‹D$ HÿÀH‹l$H9è|¤H‰L$@HƒÄ(Ã‰ëÁè    é[ÿÿÿ
+      ä
+  (runtime.nilinterhash   ¸
+  0runtime.morestack_noctxt   0P  
+"".autotmp_0377 type.int "".autotmp_0376 type.int "".~r2  type.uintptr "".h type.uintptr "".p  *type.*[8]interface {} POP ° ° 
+ q? TgclocalsÂ·0b86ef39f3fed835f14ba5f4d7c62fa2 TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goş0type..eq.[8]interface {} à  ÖeH‹%    H;a†Î   HƒìX1ÀHÇD$(   H‹l$(H9è’   H‰D$0H‹\$hHƒû „–   H‰ÅHÁåHëH‹H‹sH‹\$`Hƒû tvH‰ÅHÁåHëH‹H‹SH9ÈuVH‰D$8H‰$H‰T$@H‰T$H‰L$HH‰L$H‰t$PH‰t$è    ¶\$ €û t H‹D$0HÿÀH‹l$(H9èŒnÿÿÿÆD$pHƒÄXÃÆD$p HƒÄXÃ‰ë†‰écÿÿÿè    éÿÿÿ
+      ¼
+  runtime.efaceeq   Ä
+  0runtime.morestack_noctxt   0°  "".autotmp_0381 ?"type.interface {} "".autotmp_0380 "type.interface {} "".autotmp_0379 _type.int "".autotmp_0378 Otype.int "".~r2  type.bool "".q *type.*[8]interface {} "".p  *type.*[8]interface {} &°´¯°	¯° ğ ğ  S TgclocalsÂ·3bb21ca8fe1d99a3e492463bd711418a TgclocalsÂ·a8eabfc4a4514ed6b3b0c61e9680e440   ~/Users/juliensup/Slidare/src/userControllers/userControllers.goşTgclocalsÂ·79cc28e170da85496fa66e962ef37b98 (  (   	          "    şTgclocalsÂ·005d20618ad0d1fcd7506fcb8e04d919 (  (                   şXgo.string.hdr."User informations not filled"                       Pgo.string."User informations not filled"   şPgo.string."User informations not filled" @  :User informations not filled  şPgo.string.hdr."User email already exist"                       Hgo.string."User email already exist"   şHgo.string."User email already exist" @  2User email already exist  şvgo.string.hdr."https://graph.facebook.com/me?access_token="             +          ngo.string."https://graph.facebook.com/me?access_token="   şngo.string."https://graph.facebook.com/me?access_token=" `  Xhttps://graph.facebook.com/me?access_token=  ş(go.string.hdr."err:"                        go.string."err:"   ş go.string."err:"   
+err:  ş>go.string.hdr."Token not valid"                       6go.string."Token not valid"   ş6go.string."Token not valid"     Token not valid  ş8go.string.hdr."ID not valid"                       0go.string."ID not valid"   ş0go.string."ID not valid"    ID not valid  şTgclocalsÂ·524bc607bde23021f50e82791856fde2 P  P          `€ò  €ò  €ğ              şTgclocalsÂ·32c30788e34c97a423966af4504c1740 P  P      UUU UUU UUU UUU UUU UUU UUU UUU  şFgo.string.hdr."User does not exist"                       >go.string."User does not exist"   ş>go.string."User does not exist" 0  (User does not exist  şBgo.string.hdr."Incorect password"                       :go.string."Incorect password"   ş:go.string."Incorect password" 0  $Incorect password  şTgclocalsÂ·524bc607bde23021f50e82791856fde2 P  P          `€ò  €ò  €ğ              şTgclocalsÂ·32c30788e34c97a423966af4504c1740 P  P      UUU UUU UUU UUU UUU UUU UUU UUU  şTgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16                   şTgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa                  şTgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16                   şTgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa                  şTgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16                   şTgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa                  şTgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16                   şTgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa                  şTgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16                   şTgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa                  şTgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16                   şTgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa                  şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           şTgclocalsÂ·31b2ddfd7c7062d584469c95698a3e1d             şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           şTgclocalsÂ·31b2ddfd7c7062d584469c95698a3e1d             şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           şTgclocalsÂ·31b2ddfd7c7062d584469c95698a3e1d             şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           şTgclocalsÂ·31b2ddfd7c7062d584469c95698a3e1d             şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           şTgclocalsÂ·31b2ddfd7c7062d584469c95698a3e1d             şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           şTgclocalsÂ·31b2ddfd7c7062d584469c95698a3e1d             şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           şTgclocalsÂ·31b2ddfd7c7062d584469c95698a3e1d             şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           şTgclocalsÂ·31b2ddfd7c7062d584469c95698a3e1d             şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           şTgclocalsÂ·31b2ddfd7c7062d584469c95698a3e1d             şTgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16                   şTgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa                  şTgclocalsÂ·5e29cf4e275ff1db65cfee262b3b8d1f                   şTgclocalsÂ·aefd16b155593f6f07980a05b297ad1f                  şTgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16                   şTgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa                  şTgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16                   şTgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa                  şTgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16                   şTgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa                  şTgclocalsÂ·0c8aa8e80191a30eac23f1a218103f16                   şTgclocalsÂ·32bd5c6dc84e3e86dd35593b3922d3aa                  şXgo.string.hdr."Error while decoding Request"                       Pgo.string."Error while decoding Request"   şPgo.string."Error while decoding Request" @  :Error while decoding Request  ş:go.string.hdr."%s %s %s %s\n"                       2go.string."%s %s %s %s\n"   ş2go.string."%s %s %s %s\n"    %s %s %s %s
+  ş8go.string.hdr."Content-Type"                       0go.string."Content-Type"   ş0go.string."Content-Type"    Content-Type  ş@go.string.hdr."application/json"                       8go.string."application/json"   ş8go.string."application/json" 0  "application/json  şTgclocalsÂ·07d211382a4d24b2077d5093f900b65f Ğ  Ğ   -            À  à  0À  à  À  à  À  à  À  à  À„ à  À à  À€ à  À  à   À  ê  @À  à   şTgclocalsÂ·e76d9788ffeb8eb69a0d7b2c884b94ed p  p                                           şVgo.string.hdr."https://graph.facebook.com/"                       Ngo.string."https://graph.facebook.com/"   şNgo.string."https://graph.facebook.com/" @  8https://graph.facebook.com/  şFgo.string.hdr."/picture?type=large"                       >go.string."/picture?type=large"   ş>go.string."/picture?type=large" 0  (/picture?type=large  şTgclocalsÂ·93a1b2c0c0a70e9a9793965aecfc7ac5 Ğ  Ğ   ,            €@     €     `€     €     €     €     €B    €    €      €    €€      şTgclocalsÂ·e76d9788ffeb8eb69a0d7b2c884b94ed p  p                                           şRgo.string.hdr."cant find user from token"                       Jgo.string."cant find user from token"   şJgo.string."cant find user from token" @  4cant find user from token  şTgclocalsÂ·319184a9c8b0aafa6e0a2f94e7966d87 Ğ  Ğ   5           `      b`      
+`      `      `      `B     `     `      `       `       ` PUU  şTgclocalsÂ·2873ad95fde0f35711b4f147a25ee418 p  p                                           ş0go.string.hdr."username"                       (go.string."username"   ş(go.string."username"    username  şXgo.string.hdr."mandatory field not provided"                       Pgo.string."mandatory field not provided"   şPgo.string."mandatory field not provided" @  :mandatory field not provided  şBgo.string.hdr."Username is empty"                       :go.string."Username is empty"   ş:go.string."Username is empty" 0  $Username is empty  şTgclocalsÂ·1df902b75512ef79ccf7de34b400235c H  H                e            şTgclocalsÂ·61e1ac33ca96e64a60da5851be6ed843 H  H                            ş*go.string.hdr."email"                       "go.string."email"   ş"go.string."email"   email  ş<go.string.hdr."Email is empty"                       4go.string."Email is empty"   ş4go.string."Email is empty"    Email is empty  şFgo.string.hdr."Email already exist"                       >go.string."Email already exist"   ş>go.string."Email already exist" 0  (Email already exist  şTgclocalsÂ·f2c449cd5c7826870e9d8e130bf4ca83 H  H             	   9            şTgclocalsÂ·61e1ac33ca96e64a60da5851be6ed843 H  H                            şFgo.string.hdr."profile_picture_url"                       >go.string."profile_picture_url"   ş>go.string."profile_picture_url" 0  (profile_picture_url  şHgo.string.hdr."picture url is empty"                       @go.string."picture url is empty"   ş@go.string."picture url is empty" 0  *picture url is empty  şTgclocalsÂ·1df902b75512ef79ccf7de34b400235c H  H                e            şTgclocalsÂ·61e1ac33ca96e64a60da5851be6ed843 H  H                            ş8go.string.hdr."old_password"                       0go.string."old_password"   ş0go.string."old_password"    old_password  ş8go.string.hdr."new_password"                       0go.string."new_password"   ş0go.string."new_password"    new_password  şZgo.string.hdr."mandatory fields not provided"                       Rgo.string."mandatory fields not provided"   şRgo.string."mandatory fields not provided" @  <mandatory fields not provided  şJgo.string.hdr."new password is empty"                       Bgo.string."new password is empty"   şBgo.string."new password is empty" 0  ,new password is empty  şTgclocalsÂ·d2e7407dcba3acfbcb7ae5a8f8598f23 `  `
+                      €  !   !€          şTgclocalsÂ·20d646de57969b79bccb82c849506f4c `  `
+                                     şTgclocalsÂ·57020178141ca060aca86085906195cd                   şTgclocalsÂ·d328a7abb0999b61696a094998652cfe                  ş(go.string.hdr."name"                        go.string."name"   ş go.string."name"   
+name  şngo.string.hdr."You already have a group with this name"             '          fgo.string."You already have a group with this name"   şfgo.string."You already have a group with this name" P  PYou already have a group with this name  şTgclocalsÂ·baa8dccdb8ee09c7f3288cb80290552c `  `
+                5      @  A   @   I   H    şTgclocalsÂ·20d646de57969b79bccb82c849506f4c `  `
+                                     şDgo.string.hdr."contact_identifier"                       <go.string."contact_identifier"   ş<go.string."contact_identifier" 0  &contact_identifier  şdgo.string.hdr."Contact not in user's contact list"             "          \go.string."Contact not in user's contact list"   ş\go.string."Contact not in user's contact list" P  FContact not in user's contact list  şTgclocalsÂ·320d2f1ee39bc4bdf6275079066328af @  @                     E   şTgclocalsÂ·948a0e540dd9ee4dc893ee9411d99e55 @  @                         şBgo.string.hdr."No email provided"                       :go.string."No email provided"   ş:go.string."No email provided" 0  $No email provided  şNgo.string.hdr."No user with this Email"                       Fgo.string."No user with this Email"   şFgo.string."No user with this Email" 0  0No user with this Email  şZgo.string.hdr."Same Email as the logged user"                       Rgo.string."Same Email as the logged user"   şRgo.string."Same Email as the logged user" @  <Same Email as the logged user  şZgo.string.hdr."user already in your contacts"                       Rgo.string."user already in your contacts"   şRgo.string."user already in your contacts" @  <user already in your contacts  şTgclocalsÂ·705d437c22478be6175921b857cd6ddd `  `
+             "   "  2              şTgclocalsÂ·20d646de57969b79bccb82c849506f4c `  `
+                                     ş.go.string.hdr."contact"                       &go.string."contact"   ş&go.string."contact"   contact  şvgo.string.hdr."Contact identifier not in user contact list"             +          ngo.string."Contact identifier not in user contact list"   şngo.string."Contact identifier not in user contact list" `  XContact identifier not in user contact list  şTgclocalsÂ·e22f419a9e214bcb6d29ec3b57a3f775 P  P                               şTgclocalsÂ·2e1bf46b5fcbe5d44bfd3cc06dee2b85 P  P                               ş(go.string.hdr."here"                        go.string."here"   ş go.string."here"   
+here  ş0go.string.hdr."contacts"                       (go.string."contacts"   ş(go.string."contacts"    contacts  ş(go.string.hdr."resp"                        go.string."resp"   ş go.string."resp"   
+resp  şTgclocalsÂ·e4e9e128533b5ce673be7ec85f57104d à  à   C               à€         à           `          `         `         `   TUU    `          `          à          ˆá           à‚À       àÀ       `  À       şTgclocalsÂ·63a709a576842031d629217b1e3ea939 €  €                                                 şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           ş0"".initdoneÂ·  type.uint8   ş4"".initAndGenerateTokenÂ·f              ."".initAndGenerateToken   şL"".checkUserInformationsForCreationÂ·f              F"".checkUserInformationsForCreation   şF"".checkUserInformationsForLoginÂ·f              @"".checkUserInformationsForLogin   ş "".UpdateUserÂ·f              "".UpdateUser   ş("".UpdateUserNameÂ·f              """.UpdateUserName   ş*"".UpdateUserEmailÂ·f              $"".UpdateUserEmail   ş."".UpdateUserPictureÂ·f              ("".UpdateUserPicture   ş0"".UpdateUserPasswordÂ·f              *"".UpdateUserPassword   ş"".FetchUserÂ·f              "".FetchUser   ş2"".AcceptContactInviteÂ·f              ,"".AcceptContactInvite   ş2"".RefuseContactInviteÂ·f              ,"".RefuseContactInvite   ş."".RefuseGroupInviteÂ·f              ("".RefuseGroupInvite   ş."".AcceptGroupInviteÂ·f              ("".AcceptGroupInvite   ş""".RenameGroupÂ·f              "".RenameGroup   ş*"".RemoveFromGroupÂ·f              $"".RemoveFromGroup   ş "".LeaveGroupÂ·f              "".LeaveGroup   ş "".AddToGroupÂ·f              "".AddToGroup   ş""".RemoveGroupÂ·f              "".RemoveGroup   ş""".CreateGroupÂ·f              "".CreateGroup   ş,"".isContactInArrayÂ·f              &"".isContactInArray   ş&"".RemoveContactÂ·f               "".RemoveContact   ş "".AddContactÂ·f              "".AddContact   ş,"".FetchUserContactÂ·f              &"".FetchUserContact   ş."".FetchUserContactsÂ·f              ("".FetchUserContacts   ş"".LoginUserÂ·f              "".LoginUser   ş "".CreateUserÂ·f              "".CreateUser   ş,"".UpdateUser.func1Â·f              &"".UpdateUser.func1   ş4"".UpdateUserName.func1Â·f              ."".UpdateUserName.func1   ş6"".UpdateUserEmail.func1Â·f              0"".UpdateUserEmail.func1   ş:"".UpdateUserPicture.func1Â·f              4"".UpdateUserPicture.func1   ş<"".UpdateUserPassword.func1Â·f              6"".UpdateUserPassword.func1   ş*"".FetchUser.func1Â·f              $"".FetchUser.func1   ş."".CreateGroup.func1Â·f              ("".CreateGroup.func1   ş2"".RemoveContact.func1Â·f              ,"".RemoveContact.func1   ş,"".AddContact.func1Â·f              &"".AddContact.func1   ş8"".FetchUserContact.func1Â·f              2"".FetchUserContact.func1   ş:"".FetchUserContacts.func1Â·f              4"".FetchUserContacts.func1   ş"".initÂ·f              "".init   ş"runtime.gcbits.01    ş.go.string.hdr."[]uint8"                       &go.string."[]uint8"   ş&go.string."[]uint8"   []uint8  ştype.[]uint8                   ß~.8                                                         0   runtime.algarray   @  "runtime.gcbits.01   P  .go.string.hdr."[]uint8"   p  *go.weak.type.*[]uint8   €  "runtime.zerovalue     type.uint8   ş6go.typelink.[]uint8	[]uint8              type.[]uint8   şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           şTgclocalsÂ·0b86ef39f3fed835f14ba5f4d7c62fa2             şTgclocalsÂ·a8eabfc4a4514ed6b3b0c61e9680e440              şTgclocalsÂ·3bb21ca8fe1d99a3e492463bd711418a             şVtype..hashfunc."".FBTokenValidationResponse              Ntype..hash."".FBTokenValidationResponse   şRtype..eqfunc."".FBTokenValidationResponse              Jtype..eq."".FBTokenValidationResponse   şLtype..alg."".FBTokenValidationResponse                        Vtype..hashfunc."".FBTokenValidationResponse     Rtype..eqfunc."".FBTokenValidationResponse   ş"runtime.gcbits.05    şrgo.string.hdr."userControllers.FBTokenValidationResponse"             )          jgo.string."userControllers.FBTokenValidationResponse"   şjgo.string."userControllers.FBTokenValidationResponse" `  TuserControllers.FBTokenValidationResponse  ş(go.string.hdr."Name"                        go.string."Name"   ş go.string."Name"   
+Name  ş<go.string.hdr."json: \"name\""                       4go.string."json: \"name\""   ş4go.string."json: \"name\""    json: "name"  ş$go.string.hdr."ID"                       go.string."ID"   şgo.string."ID"   ID  ş8go.string.hdr."json: \"id\""             
+          0go.string."json: \"id\""   ş0go.string."json: \"id\""    json: "id"  şRgo.string.hdr."FBTokenValidationResponse"                       Jgo.string."FBTokenValidationResponse"   şJgo.string."FBTokenValidationResponse" @  4FBTokenValidationResponse  ş>go.string.hdr."userControllers"                       6go.string."userControllers"   ş6go.string."userControllers"     userControllers  ş"go.importpath."".                       6go.string."userControllers"   şBtype."".FBTokenValidationResponse  °  °               Ñ‚Ñ                                                                                                                                                                                               0  Ltype..alg."".FBTokenValidationResponse   @  "runtime.gcbits.05   P  rgo.string.hdr."userControllers.FBTokenValidationResponse"   p  Dtype.*"".FBTokenValidationResponse   €  "runtime.zerovalue   À Btype."".FBTokenValidationResponse   À  (go.string.hdr."Name"   à  type.string   ğ  <go.string.hdr."json: \"name\""     $go.string.hdr."ID"   °  type.string   À  8go.string.hdr."json: \"id\""   `à Btype."".FBTokenValidationResponse   à  Rgo.string.hdr."FBTokenValidationResponse"   ğ  "go.importpath."".   €° Btype."".FBTokenValidationResponse   ştgo.string.hdr."*userControllers.FBTokenValidationResponse"             *          lgo.string."*userControllers.FBTokenValidationResponse"   şlgo.string."*userControllers.FBTokenValidationResponse" `  V*userControllers.FBTokenValidationResponse  şDtype.*"".FBTokenValidationResponse                    ¶²nä 6                                                        0   runtime.algarray   @  "runtime.gcbits.01   P  tgo.string.hdr."*userControllers.FBTokenValidationResponse"   p  Vgo.weak.type.**"".FBTokenValidationResponse   €  "runtime.zerovalue     Btype."".FBTokenValidationResponse   ş"runtime.gcbits.03    ş8go.string.hdr."interface {}"                       0go.string."interface {}"   ş0go.string."interface {}"    interface {}  ş"type.interface {} À  À              çW                                                                          0€  runtime.algarray   @  "runtime.gcbits.03   P  8go.string.hdr."interface {}"   p  4go.weak.type.*interface {}   €  "runtime.zerovalue   À "type.interface {}   ş<go.string.hdr."[]interface {}"                       4go.string."[]interface {}"   ş4go.string."[]interface {}"    []interface {}  ş&type.[]interface {}                   p“ê/                                                         0   runtime.algarray   @  "runtime.gcbits.01   P  <go.string.hdr."[]interface {}"   p  8go.weak.type.*[]interface {}   €  "runtime.zerovalue     "type.interface {}   şRgo.typelink.[]interface {}	[]interface {}              &type.[]interface {}   şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           şTgclocalsÂ·0b86ef39f3fed835f14ba5f4d7c62fa2             şTgclocalsÂ·a8eabfc4a4514ed6b3b0c61e9680e440              şTgclocalsÂ·3bb21ca8fe1d99a3e492463bd711418a             ş<type..hashfunc.[2]interface {}              4type..hash.[2]interface {}   ş8type..eqfunc.[2]interface {}              0type..eq.[2]interface {}   ş2type..alg.[2]interface {}                        <type..hashfunc.[2]interface {}     8type..eqfunc.[2]interface {}   ş"runtime.gcbits.0f    ş>go.string.hdr."[2]interface {}"                       6go.string."[2]interface {}"   ş6go.string."[2]interface {}"     [2]interface {}  ş(type.[2]interface {} À  À                ,Y¤ñ                                                                        0  2type..alg.[2]interface {}   @  "runtime.gcbits.0f   P  >go.string.hdr."[2]interface {}"   p  :go.weak.type.*[2]interface {}   €  "runtime.zerovalue     "type.interface {}      &type.[]interface {}   şVgo.typelink.[2]interface {}	[2]interface {}              (type.[2]interface {}   ş@go.string.hdr."*[2]interface {}"                       8go.string."*[2]interface {}"   ş8go.string."*[2]interface {}" 0  "*[2]interface {}  ş*type.*[2]interface {}                   ¾s-q 6                                                        0   runtime.algarray   @  "runtime.gcbits.01   P  @go.string.hdr."*[2]interface {}"   p  <go.weak.type.**[2]interface {}   €  "runtime.zerovalue     (type.[2]interface {}   ş"runtime.gcbits.02    şfgo.string.hdr."struct { F uintptr; token *string }"             #          ^go.string."struct { F uintptr; token *string }"   ş^go.string."struct { F uintptr; token *string }" P  Hstruct { F uintptr; token *string }  ş$go.string.hdr.".F"                       go.string.".F"   şgo.string.".F"   .F  ş*go.string.hdr."token"                       "go.string."token"   ş"go.string."token"   token  şPtype.struct { F uintptr; token *string } à  à              Kåù                                                                                                                                                      0À  runtime.algarray   @  "runtime.gcbits.02   P  fgo.string.hdr."struct { F uintptr; token *string }"   p  bgo.weak.type.*struct { F uintptr; token *string }   €  "runtime.zerovalue   À Ptype.struct { F uintptr; token *string }   À  $go.string.hdr.".F"   Ğ  "go.importpath."".   à  type.uintptr     *go.string.hdr."token"      "go.importpath."".   °  type.*string   şhgo.string.hdr."*struct { F uintptr; token *string }"             $          `go.string."*struct { F uintptr; token *string }"   ş`go.string."*struct { F uintptr; token *string }" P  J*struct { F uintptr; token *string }  şRtype.*struct { F uintptr; token *string }                   a=ÒĞ 6                                                        0   runtime.algarray   @  "runtime.gcbits.01   P  hgo.string.hdr."*struct { F uintptr; token *string }"   p  dgo.weak.type.**struct { F uintptr; token *string }   €  "runtime.zerovalue     Ptype.struct { F uintptr; token *string }   ş0go.string.hdr."[]string"                       (go.string."[]string"   ş(go.string."[]string"    []string  ştype.[]string                   Ó¨ó
+                                                         0   runtime.algarray   @  "runtime.gcbits.01   P  0go.string.hdr."[]string"   p  ,go.weak.type.*[]string   €  "runtime.zerovalue     type.string   ş:go.typelink.[]string	[]string              type.[]string   ş2go.string.hdr."*[]string"             	          *go.string."*[]string"   ş*go.string."*[]string"    *[]string  ştype.*[]string                   ’"v„ 6                                                        0   runtime.algarray   @  "runtime.gcbits.01   P  2go.string.hdr."*[]string"   p  .go.weak.type.**[]string   €  "runtime.zerovalue     type.[]string   şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           şTgclocalsÂ·0b86ef39f3fed835f14ba5f4d7c62fa2             şTgclocalsÂ·a8eabfc4a4514ed6b3b0c61e9680e440              şTgclocalsÂ·3bb21ca8fe1d99a3e492463bd711418a             ş@type..hashfunc."".SignInResponse              8type..hash."".SignInResponse   ş<type..eqfunc."".SignInResponse              4type..eq."".SignInResponse   ş6type..alg."".SignInResponse                        @type..hashfunc."".SignInResponse     <type..eqfunc."".SignInResponse   ş^go.string.hdr."*userControllers.SignInResponse"                       Vgo.string."*userControllers.SignInResponse"   şVgo.string."*userControllers.SignInResponse" @  @*userControllers.SignInResponse  ş.type.*"".SignInResponse                    Ù^«Á 6                                                        0   runtime.algarray   @  "runtime.gcbits.01   P  ^go.string.hdr."*userControllers.SignInResponse"   p  @go.weak.type.**"".SignInResponse   €  "runtime.zerovalue     ,type."".SignInResponse   ş\go.string.hdr."userControllers.SignInResponse"                       Tgo.string."userControllers.SignInResponse"   şTgo.string."userControllers.SignInResponse" @  >userControllers.SignInResponse  ş*go.string.hdr."Token"                       "go.string."Token"   ş"go.string."Token"   Token  ş<go.string.hdr."json:\"token\""                       4go.string."json:\"token\""   ş4go.string."json:\"token\""    json:"token"  şdgo.string.hdr."json:\"id\" bson:\"_id,omitempty\""                       \go.string."json:\"id\" bson:\"_id,omitempty\""   ş\go.string."json:\"id\" bson:\"_id,omitempty\"" @  >json:"id" bson:"_id,omitempty"  ş<go.string.hdr."SignInResponse"                       4go.string."SignInResponse"   ş4go.string."SignInResponse"    SignInResponse  ş,type."".SignInResponse  °  °               ûP9?                                                                                                                                                                                               0  6type..alg."".SignInResponse   @  "runtime.gcbits.05   P  \go.string.hdr."userControllers.SignInResponse"   p  .type.*"".SignInResponse   €  "runtime.zerovalue   À ,type."".SignInResponse   À  *go.string.hdr."Token"   à  type.string   ğ  <go.string.hdr."json:\"token\""     $go.string.hdr."ID"   °  type.string   À  dgo.string.hdr."json:\"id\" bson:\"_id,omitempty\""   `à ,type."".SignInResponse   à  <go.string.hdr."SignInResponse"   ğ  "go.importpath."".   €° ,type."".SignInResponse   şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           şTgclocalsÂ·0b86ef39f3fed835f14ba5f4d7c62fa2             şTgclocalsÂ·a8eabfc4a4514ed6b3b0c61e9680e440              şTgclocalsÂ·3bb21ca8fe1d99a3e492463bd711418a             ş<type..hashfunc.[1]interface {}              4type..hash.[1]interface {}   ş8type..eqfunc.[1]interface {}              0type..eq.[1]interface {}   ş2type..alg.[1]interface {}                        <type..hashfunc.[1]interface {}     8type..eqfunc.[1]interface {}   ş>go.string.hdr."[1]interface {}"                       6go.string."[1]interface {}"   ş6go.string."[1]interface {}"     [1]interface {}  ş(type.[1]interface {} À  À              P‘[ú                                                                        0  2type..alg.[1]interface {}   @  "runtime.gcbits.03   P  >go.string.hdr."[1]interface {}"   p  :go.weak.type.*[1]interface {}   €  "runtime.zerovalue     "type.interface {}      &type.[]interface {}   şVgo.typelink.[1]interface {}	[1]interface {}              (type.[1]interface {}   ş@go.string.hdr."*[1]interface {}"                       8go.string."*[1]interface {}"   ş8go.string."*[1]interface {}" 0  "*[1]interface {}  ş*type.*[1]interface {}                   ¿¨5 6                                                        0   runtime.algarray   @  "runtime.gcbits.01   P  @go.string.hdr."*[1]interface {}"   p  <go.weak.type.**[1]interface {}   €  "runtime.zerovalue     (type.[1]interface {}   şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           şTgclocalsÂ·0b86ef39f3fed835f14ba5f4d7c62fa2             şTgclocalsÂ·a8eabfc4a4514ed6b3b0c61e9680e440              şTgclocalsÂ·3bb21ca8fe1d99a3e492463bd711418a             ş<type..hashfunc.[4]interface {}              4type..hash.[4]interface {}   ş8type..eqfunc.[4]interface {}              0type..eq.[4]interface {}   ş2type..alg.[4]interface {}                        <type..hashfunc.[4]interface {}     8type..eqfunc.[4]interface {}   ş"runtime.gcbits.ff   ÿ ş>go.string.hdr."[4]interface {}"                       6go.string."[4]interface {}"   ş6go.string."[4]interface {}"     [4]interface {}  ş(type.[4]interface {} À  À@       @       P2ï                                                                        0  2type..alg.[4]interface {}   @  "runtime.gcbits.ff   P  >go.string.hdr."[4]interface {}"   p  :go.weak.type.*[4]interface {}   €  "runtime.zerovalue     "type.interface {}      &type.[]interface {}   şVgo.typelink.[4]interface {}	[4]interface {}              (type.[4]interface {}   ş@go.string.hdr."*[4]interface {}"                       8go.string."*[4]interface {}"   ş8go.string."*[4]interface {}" 0  "*[4]interface {}  ş*type.*[4]interface {}                   ˆ-l 6                                                        0   runtime.algarray   @  "runtime.gcbits.01   P  @go.string.hdr."*[4]interface {}"   p  <go.weak.type.**[4]interface {}   €  "runtime.zerovalue     (type.[4]interface {}   şruntime.gcbits.      ş0go.string.hdr."[8]uint8"                       (go.string."[8]uint8"   ş(go.string."[8]uint8"    [8]uint8  ştype.[8]uint8 À  À               >ù0´ ‘                                                                       0   runtime.algarray   @  runtime.gcbits.   P  0go.string.hdr."[8]uint8"   p  ,go.weak.type.*[8]uint8   €  "runtime.zerovalue     type.uint8      type.[]uint8   ş:go.typelink.[8]uint8	[8]uint8              type.[8]uint8   şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           şTgclocalsÂ·0b86ef39f3fed835f14ba5f4d7c62fa2             şTgclocalsÂ·a8eabfc4a4514ed6b3b0c61e9680e440              şTgclocalsÂ·3bb21ca8fe1d99a3e492463bd711418a             ş0type..hashfunc.[8]string              (type..hash.[8]string   ş,type..eqfunc.[8]string              $type..eq.[8]string   ş&type..alg.[8]string                        0type..hashfunc.[8]string     ,type..eqfunc.[8]string   ş&runtime.gcbits.5555   UU ş2go.string.hdr."[8]string"             	          *go.string."[8]string"   ş*go.string."[8]string"    [8]string  ştype.[8]string À  À€       x       USŒ>                                                                        0  &type..alg.[8]string   @  &runtime.gcbits.5555   P  2go.string.hdr."[8]string"   p  .go.weak.type.*[8]string   €  "runtime.zerovalue     type.string      type.[]string   ş>go.typelink.[8]string	[8]string              type.[8]string   şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           şTgclocalsÂ·0b86ef39f3fed835f14ba5f4d7c62fa2             şTgclocalsÂ·a8eabfc4a4514ed6b3b0c61e9680e440              şTgclocalsÂ·3bb21ca8fe1d99a3e492463bd711418a             ş<type..hashfunc.[8]interface {}              4type..hash.[8]interface {}   ş8type..eqfunc.[8]interface {}              0type..eq.[8]interface {}   ş2type..alg.[8]interface {}                        <type..hashfunc.[8]interface {}     8type..eqfunc.[8]interface {}   ş&runtime.gcbits.ffff   ÿÿ ş>go.string.hdr."[8]interface {}"                       6go.string."[8]interface {}"   ş6go.string."[8]interface {}"     [8]interface {}  ş(type.[8]interface {} À  À€       €       Ç.Tğ                                                                        0  2type..alg.[8]interface {}   @  &runtime.gcbits.ffff   P  >go.string.hdr."[8]interface {}"   p  :go.weak.type.*[8]interface {}   €  "runtime.zerovalue     "type.interface {}      &type.[]interface {}   şVgo.typelink.[8]interface {}	[8]interface {}              (type.[8]interface {}   ş^go.string.hdr."*map.bucket[string]interface {}"                       Vgo.string."*map.bucket[string]interface {}"   şVgo.string."*map.bucket[string]interface {}" @  @*map.bucket[string]interface {}  şHtype.*map.bucket[string]interface {}                   öÌè 6                                                        0   runtime.algarray   @  "runtime.gcbits.01   P  ^go.string.hdr."*map.bucket[string]interface {}"   p  Zgo.weak.type.**map.bucket[string]interface {}   €  "runtime.zerovalue     Ftype.map.bucket[string]interface {}   ş2runtime.gcbits.aaaafeff03 
+  
+ªªşÿ ş\go.string.hdr."map.bucket[string]interface {}"                       Tgo.string."map.bucket[string]interface {}"   şTgo.string."map.bucket[string]interface {}" @  >map.bucket[string]interface {}  ş.go.string.hdr."topbits"                       &go.string."topbits"   ş&go.string."topbits"   topbits  ş(go.string.hdr."keys"                        go.string."keys"   ş go.string."keys"   
+keys  ş,go.string.hdr."values"                       $go.string."values"   ş$go.string."values"   values  ş0go.string.hdr."overflow"                       (go.string."overflow"   ş(go.string."overflow"    overflow  şFtype.map.bucket[string]interface {} €  €            
+¾÷                                                                                                                                                                                      ˆ                                             0à  runtime.algarray   @  2runtime.gcbits.aaaafeff03   P  \go.string.hdr."map.bucket[string]interface {}"   p  Xgo.weak.type.*map.bucket[string]interface {}   €  "runtime.zerovalue   À Ftype.map.bucket[string]interface {}   À  .go.string.hdr."topbits"   à  type.[8]uint8     (go.string.hdr."keys"   °  type.[8]string   à  ,go.string.hdr."values"   €  (type.[8]interface {}   °  0go.string.hdr."overflow"   Ğ  Htype.*map.bucket[string]interface {}   ş"runtime.gcbits.2c   , şVgo.string.hdr."map.hdr[string]interface {}"                       Ngo.string."map.hdr[string]interface {}"   şNgo.string."map.hdr[string]interface {}" @  8map.hdr[string]interface {}  ş*go.string.hdr."count"                       "go.string."count"   ş"go.string."count"   count  ş*go.string.hdr."flags"                       "go.string."flags"   ş"go.string."flags"   flags  ş"go.string.hdr."B"                       go.string."B"   şgo.string."B"   B  ş*go.string.hdr."hash0"                       "go.string."hash0"   ş"go.string."hash0"   hash0  ş.go.string.hdr."buckets"                       &go.string."buckets"   ş&go.string."buckets"   buckets  ş4go.string.hdr."oldbuckets"             
+          ,go.string."oldbuckets"   ş,go.string."oldbuckets"    oldbuckets  ş2go.string.hdr."nevacuate"             	          *go.string."nevacuate"   ş*go.string."nevacuate"    nevacuate  ş@type.map.hdr[string]interface {} À  À0       0       yÎ×»                                                                                                                                                                                      	                                                                                                                                                                                                    (       ,0à  runtime.algarray   @  "runtime.gcbits.2c   P  Vgo.string.hdr."map.hdr[string]interface {}"   p  Rgo.weak.type.*map.hdr[string]interface {}   €  "runtime.zerovalue   À @type.map.hdr[string]interface {}   À  *go.string.hdr."count"   à  type.int     *go.string.hdr."flags"   °  type.uint8   à  "go.string.hdr."B"   €  type.uint8   °  *go.string.hdr."hash0"   Ğ  type.uint32   €  .go.string.hdr."buckets"      Htype.*map.bucket[string]interface {}   Ğ  4go.string.hdr."oldbuckets"   ğ  Htype.*map.bucket[string]interface {}      2go.string.hdr."nevacuate"   À  type.uintptr   ğ  0go.string.hdr."overflow"     &type.unsafe.Pointer   şNgo.string.hdr."map[string]interface {}"                       Fgo.string."map[string]interface {}"   şFgo.string."map[string]interface {}" 0  0map[string]interface {}  ş8type.map[string]interface {} Ş  Ş              †bq 5                                                                                  0€  runtime.algarray   @  "runtime.gcbits.01   P  Ngo.string.hdr."map[string]interface {}"   p  Jgo.weak.type.*map[string]interface {}   €  "runtime.zerovalue     type.string      "type.interface {}   °  Ftype.map.bucket[string]interface {}   À  @type.map.hdr[string]interface {}   şvgo.typelink.map[string]interface {}	map[string]interface {}              8type.map[string]interface {}   şPgo.string.hdr."*map[string]interface {}"                       Hgo.string."*map[string]interface {}"   şHgo.string."*map[string]interface {}" @  2*map[string]interface {}  ş:type.*map[string]interface {}                   ‰ec 6                                                        0   runtime.algarray   @  "runtime.gcbits.01   P  Pgo.string.hdr."*map[string]interface {}"   p  Lgo.weak.type.**map[string]interface {}   €  "runtime.zerovalue     8type.map[string]interface {}   şRgo.string.hdr."*map.bucket[string]string"                       Jgo.string."*map.bucket[string]string"   şJgo.string."*map.bucket[string]string" @  4*map.bucket[string]string  ş<type.*map.bucket[string]string                   ¦te 6                                                        0   runtime.algarray   @  "runtime.gcbits.01   P  Rgo.string.hdr."*map.bucket[string]string"   p  Ngo.weak.type.**map.bucket[string]string   €  "runtime.zerovalue     :type.map.bucket[string]string   ş2runtime.gcbits.aaaaaaaa02 
+  
+ªªªª şPgo.string.hdr."map.bucket[string]string"                       Hgo.string."map.bucket[string]string"   şHgo.string."map.bucket[string]string" @  2map.bucket[string]string  ş:type.map.bucket[string]string €  €            Ş>                                                                                                                                                                                      ˆ                                             0à  runtime.algarray   @  2runtime.gcbits.aaaaaaaa02   P  Pgo.string.hdr."map.bucket[string]string"   p  Lgo.weak.type.*map.bucket[string]string   €  "runtime.zerovalue   À :type.map.bucket[string]string   À  .go.string.hdr."topbits"   à  type.[8]uint8     (go.string.hdr."keys"   °  type.[8]string   à  ,go.string.hdr."values"   €  type.[8]string   °  0go.string.hdr."overflow"   Ğ  <type.*map.bucket[string]string   şJgo.string.hdr."map.hdr[string]string"                       Bgo.string."map.hdr[string]string"   şBgo.string."map.hdr[string]string" 0  ,map.hdr[string]string  ş4type.map.hdr[string]string À  À0       0       Ïmlh                                                                                                                                                                                      	                                                                                                                                                                                                    (       ,0à  runtime.algarray   @  "runtime.gcbits.2c   P  Jgo.string.hdr."map.hdr[string]string"   p  Fgo.weak.type.*map.hdr[string]string   €  "runtime.zerovalue   À 4type.map.hdr[string]string   À  *go.string.hdr."count"   à  type.int     *go.string.hdr."flags"   °  type.uint8   à  "go.string.hdr."B"   €  type.uint8   °  *go.string.hdr."hash0"   Ğ  type.uint32   €  .go.string.hdr."buckets"      <type.*map.bucket[string]string   Ğ  4go.string.hdr."oldbuckets"   ğ  <type.*map.bucket[string]string      2go.string.hdr."nevacuate"   À  type.uintptr   ğ  0go.string.hdr."overflow"     &type.unsafe.Pointer   şBgo.string.hdr."map[string]string"                       :go.string."map[string]string"   ş:go.string."map[string]string" 0  $map[string]string  ş,type.map[string]string Ş  Ş              Y¡ç) 5                                                                                  0€  runtime.algarray   @  "runtime.gcbits.01   P  Bgo.string.hdr."map[string]string"   p  >go.weak.type.*map[string]string   €  "runtime.zerovalue     type.string      type.string   °  :type.map.bucket[string]string   À  4type.map.hdr[string]string   ş^go.typelink.map[string]string	map[string]string              ,type.map[string]string   şDgo.string.hdr."[]models.UserModel"                       <go.string."[]models.UserModel"   ş<go.string."[]models.UserModel" 0  &[]models.UserModel  ş.type.[]models.UserModel                   Ã(C                                                         0   runtime.algarray   @  "runtime.gcbits.01   P  Dgo.string.hdr."[]models.UserModel"   p  @go.weak.type.*[]models.UserModel   €  "runtime.zerovalue     *type.models.UserModel   şbgo.typelink.[]models.UserModel	[]models.UserModel              .type.[]models.UserModel   ş4go.string.hdr."*[8]string"             
+          ,go.string."*[8]string"   ş,go.string."*[8]string"    *[8]string  ştype.*[8]string                   ­”o 6                                                        0   runtime.algarray   @  "runtime.gcbits.01   P  4go.string.hdr."*[8]string"   p  0go.weak.type.**[8]string   €  "runtime.zerovalue     type.[8]string   ş@go.string.hdr."*[8]interface {}"                       8go.string."*[8]interface {}"   ş8go.string."*[8]interface {}" 0  "*[8]interface {}  ş*type.*[8]interface {}                   ‰aK 6                                                        0   runtime.algarray   @  "runtime.gcbits.01   P  @go.string.hdr."*[8]interface {}"   p  <go.weak.type.**[8]interface {}   €  "runtime.zerovalue     (type.[8]interface {}   ş.go.string.hdr."runtime"                       &go.string."runtime"   ş&go.string."runtime"   runtime  ş,go.importpath.runtime.                       &go.string."runtime"   ş,go.string.hdr."models"                       $go.string."models"   ş$go.string."models"   models  ş*go.importpath.models.                       $go.string."models"   ş:go.string.hdr."encoding/json"                       2go.string."encoding/json"   ş2go.string."encoding/json"    encoding/json  ş8go.importpath.encoding/json.                       2go.string."encoding/json"   ş0go.string.hdr."net/http"                       (go.string."net/http"   ş(go.string."net/http"    net/http  ş.go.importpath.net/http.                       (go.string."net/http"   ş&go.string.hdr."log"                       go.string."log"   şgo.string."log"   log  ş$go.importpath.log.                       go.string."log"   şFgo.string.hdr."core/authentication"                       >go.string."core/authentication"   ş>go.string."core/authentication" 0  (core/authentication  şDgo.importpath.core/authentication.                       >go.string."core/authentication"   şdgo.string.hdr."github.com/lonelycode/go-uuid/uuid"             "          \go.string."github.com/lonelycode/go-uuid/uuid"   ş\go.string."github.com/lonelycode/go-uuid/uuid" P  Fgithub.com/lonelycode/go-uuid/uuid  şbgo.importpath.github.com/lonelycode/go-uuid/uuid.             "          \go.string."github.com/lonelycode/go-uuid/uuid"   ş\go.string.hdr."github.com/codegangsta/negroni"                       Tgo.string."github.com/codegangsta/negroni"   şTgo.string."github.com/codegangsta/negroni" @  >github.com/codegangsta/negroni  şZgo.importpath.github.com/codegangsta/negroni.                       Tgo.string."github.com/codegangsta/negroni"   ş(go.string.hdr."mydb"                        go.string."mydb"   ş go.string."mydb"   
+mydb  ş&go.importpath.mydb.                        go.string."mydb"   şLgo.string.hdr."github.com/gorilla/mux"                       Dgo.string."github.com/gorilla/mux"   şDgo.string."github.com/gorilla/mux" 0  .github.com/gorilla/mux  şJgo.importpath.github.com/gorilla/mux.                       Dgo.string."github.com/gorilla/mux"   ş<go.string.hdr."api/parameters"                       4go.string."api/parameters"   ş4go.string."api/parameters"    api/parameters  ş:go.importpath.api/parameters.                       4go.string."api/parameters"   şHgo.string.hdr."gopkg.in/mgo.v2/bson"                       @go.string."gopkg.in/mgo.v2/bson"   ş@go.string."gopkg.in/mgo.v2/bson" 0  *gopkg.in/mgo.v2/bson  şFgo.importpath.gopkg.in/mgo.v2/bson.                       @go.string."gopkg.in/mgo.v2/bson"   şTtype..hash."".FBTokenValidationResponseÂ·f              Ntype..hash."".FBTokenValidationResponse   şPtype..eq."".FBTokenValidationResponseÂ·f              Jtype..eq."".FBTokenValidationResponse   ş:type..hash.[2]interface {}Â·f              4type..hash.[2]interface {}   ş6type..eq.[2]interface {}Â·f              0type..eq.[2]interface {}   ş>type..hash."".SignInResponseÂ·f              8type..hash."".SignInResponse   ş:type..eq."".SignInResponseÂ·f              4type..eq."".SignInResponse   ş:type..hash.[1]interface {}Â·f              4type..hash.[1]interface {}   ş6type..eq.[1]interface {}Â·f              0type..eq.[1]interface {}   ş:type..hash.[4]interface {}Â·f              4type..hash.[4]interface {}   ş6type..eq.[4]interface {}Â·f              0type..eq.[4]interface {}   ş.type..hash.[8]stringÂ·f              (type..hash.[8]string   ş*type..eq.[8]stringÂ·f              $type..eq.[8]string   ş:type..hash.[8]interface {}Â·f              4type..hash.[8]interface {}   ş6type..eq.[8]interface {}Â·f              0type..eq.[8]interface {}   ş"runtime.zerovalue      ÿÿgo13ld 

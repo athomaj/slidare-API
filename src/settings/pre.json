@@ -1,0 +1,5 @@
+{
+  "PrivateKeyPath": "/Users/juliensup/Slidare/src/settings/keys/private_key",
+  "PublicKeyPath": "/Users/juliensup/Slidare/src/settings/keys/public_key",
+  "JWTExpirationDelta": 72
+}
