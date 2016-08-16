@@ -37,6 +37,7 @@ func initAndGenerateToken() (int, []byte, string) {
 }
 
 func checkUserInformationsForCreation(user models.UserModel) (bool, string){
+  log.Println(user.Firstname, ":", user.LastName, ":", user.Email, ":", user.FBToken, ":", user.FBUserID, ":", user.Password)
   if len(user.Firstname) == 0 || len(user.LastName) == 0 || len(user.Email) == 0 || (len(user.FBToken) == 0 && len(user.Password) == 0)|| (len(user.FBUserID) == 0  && len(user.Password) == 0){
     return false, "User informations not filled"
   } else if database.DoesEmailExistInDB(user.Email) == true {
@@ -600,6 +601,10 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
   }
 
   valid, errMsg := checkUserInformationsForLogin(user)
+  if (valid == false && errMsg == "User does not exist" && len(user.FBToken) != 0) {
+    createFacebookUser(w, r, user)
+    return ;
+  }
   if (valid){
     user := database.GetUsersByEmail(user.Email)
 
@@ -631,9 +636,46 @@ func CreateUser(w http.ResponseWriter, r *http.Request)  {
   var user models.UserModel
   err := decoder.Decode(&user)
   if err != nil {
-    log.Println("Error while decoding Request");
+    log.Println("Error while decoding Request in create user");
+    log.Println(err)
   }
   valid, errMsg := checkUserInformationsForCreation(user)
+  if (valid){
+    responseStatus, _, tokenString := initAndGenerateToken()
+    user.ID = bson.ObjectId.Hex(bson.NewObjectId())
+    user.Token = tokenString;
+
+    if (len(user.UserName) == 0) {
+      user.UserName = user.Email
+    }
+
+    if (len(user.FBUserID) != 0) {
+      user.ProfilePictureURL = "https://graph.facebook.com/" + user.FBUserID + "/picture?type=large"
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(responseStatus)
+
+    database.CreateNewUser(user)
+
+    var resp SignInResponse
+    resp.Token = user.Token
+    resp.ID = user.ID
+    respJson, err := json.Marshal(resp)
+    if err != nil {
+        return
+    }
+    w.Write([]byte(respJson))
+  } else {
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(400)
+    w.Write([]byte(errMsg))
+  }
+}
+
+func createFacebookUser(w http.ResponseWriter, r *http.Request, user models.UserModel) {
+  valid, errMsg := checkUserInformationsForCreation(user)
+  log.Println(valid)
   if (valid){
     responseStatus, _, tokenString := initAndGenerateToken()
     user.ID = bson.ObjectId.Hex(bson.NewObjectId())
