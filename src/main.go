@@ -113,7 +113,7 @@ func main() {
     router.HandleFunc("/loginUser", userControllers.LoginUser).Methods("POST")
     router.HandleFunc("/token-auth", controllers.Login).Methods("POST")
 
-    log.Fatal(http.ListenAndServe(":8080", router))
+    log.Fatal(http.ListenAndServe(":50000", router))
 }
 
 func getUserContacts(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {

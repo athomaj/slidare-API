@@ -20,7 +20,7 @@ type mongodb struct {
 
 func Init() {
   instance = mongodb{}
-  session, err := mgo.Dial("mongodb://localhost:27017")
+  session, err := mgo.Dial("mongodb://localhost:27018")
   instance.Session = session
           if err != nil {
               panic(err)
