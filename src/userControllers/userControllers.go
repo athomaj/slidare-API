@@ -12,6 +12,7 @@ import (
     "mydb"
     "gopkg.in/mgo.v2/bson"
     "github.com/codegangsta/negroni"
+    "github.com/antigloss/go/logger"
 )
 
 type FBTokenValidationResponse struct {
@@ -95,10 +96,12 @@ func checkUserInformationsForLogin(user models.UserModel) (bool, string){
 */
 func UpdateUser(token *string) negroni.HandlerFunc {
   return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("UpdateUser called")
     decoder := json.NewDecoder(r.Body)
     var userToUpdate models.UserModel
     err := decoder.Decode(&userToUpdate)
     if err != nil {
+      logger.Info("Error while decoding Request")
       log.Println("Error while decoding Request");
     }
 
@@ -108,6 +111,7 @@ func UpdateUser(token *string) negroni.HandlerFunc {
       w.Header().Set("Content-Type", "application/json")
       w.WriteHeader(400)
       w.Write([]byte("cant find user from token"))
+      logger.Info("cant find user from token")
     } else {
       w.Header().Set("Content-Type", "application/json")
       w.WriteHeader(200)
@@ -116,6 +120,7 @@ func UpdateUser(token *string) negroni.HandlerFunc {
           return
       }
       w.Write([]byte(respJson))
+      logger.Info("User Updated")
     }
   }
 }
@@ -127,11 +132,13 @@ func UpdateUser(token *string) negroni.HandlerFunc {
 */
 func UpdateUserName(token *string) negroni.HandlerFunc {
   return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("UpdateUserName called")
     user := database.GetUserFromToken(token)
     if (user == nil) {
       w.Header().Set("Content-Type", "application/json")
       w.WriteHeader(400)
       w.Write([]byte("cant find user from token"))
+      logger.Info("cant find user from token")
       return ;
     } else {
       var params map[string]interface{}
@@ -141,6 +148,7 @@ func UpdateUserName(token *string) negroni.HandlerFunc {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(400)
         w.Write([]byte("mandatory field not provided"))
+        logger.Info("mandatory field <username> not provided")
         return ;
       }
       userName := params["username"].(string)
@@ -149,12 +157,14 @@ func UpdateUserName(token *string) negroni.HandlerFunc {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(400)
         w.Write([]byte("Username is empty"))
+        logger.Info("Username is empty")
         return
       }
 
       database.UpdateUserName(&userName, user)
       w.Header().Set("Content-Type", "application/json")
       w.WriteHeader(200)
+      logger.Info("Username updated")
     }
   }
 }
@@ -166,11 +176,13 @@ func UpdateUserName(token *string) negroni.HandlerFunc {
 */
 func UpdateUserEmail(token *string) negroni.HandlerFunc {
   return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("UpdateUserEmail called")
     user := database.GetUserFromToken(token)
     if (user == nil) {
       w.Header().Set("Content-Type", "application/json")
       w.WriteHeader(400)
       w.Write([]byte("cant find user from token"))
+      logger.Info("cant find user from token")
     } else {
       var params map[string]interface{}
       decoder := json.NewDecoder(r.Body)
@@ -179,6 +191,7 @@ func UpdateUserEmail(token *string) negroni.HandlerFunc {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(400)
         w.Write([]byte("mandatory field not provided"))
+        logger.Info("mandatory field <email> not provided")
         return ;
       }
       userEmail := params["email"].(string)
@@ -187,6 +200,7 @@ func UpdateUserEmail(token *string) negroni.HandlerFunc {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(400)
         w.Write([]byte("Email is empty"))
+        logger.Info("Email is empty")
         return
       }
 
@@ -194,10 +208,12 @@ func UpdateUserEmail(token *string) negroni.HandlerFunc {
       if (err != nil) {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(200)
+        logger.Info("User Email updated")
       } else {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(400)
         w.Write([]byte("Email already exist"))
+        logger.Info("Email already exist")
       }
     }
   }
@@ -210,11 +226,13 @@ func UpdateUserEmail(token *string) negroni.HandlerFunc {
 */
 func UpdateUserPicture(token *string) negroni.HandlerFunc {
   return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("UpdateUserPicture called")
     user := database.GetUserFromToken(token)
     if (user == nil) {
       w.Header().Set("Content-Type", "application/json")
       w.WriteHeader(400)
       w.Write([]byte("cant find user from token"))
+      logger.Info("cant find user from token")
     } else {
       var params map[string]interface{}
       decoder := json.NewDecoder(r.Body)
@@ -223,6 +241,7 @@ func UpdateUserPicture(token *string) negroni.HandlerFunc {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(400)
         w.Write([]byte("mandatory field not provided"))
+        logger.Info("mandatory field profile_picture_url not provided")
       }
       userPicture := params["profile_picture_url"].(string)
 
@@ -230,9 +249,11 @@ func UpdateUserPicture(token *string) negroni.HandlerFunc {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(400)
         w.Write([]byte("picture url is empty"))
+        logger.Info("picture url is empty")
         return
       }
       database.UpdateUserPicture(&userPicture, user)
+      logger.Info("picture Updated")
     }
   }
 }
@@ -244,11 +265,13 @@ func UpdateUserPicture(token *string) negroni.HandlerFunc {
 */
 func UpdateUserPassword(token *string) negroni.HandlerFunc {
   return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("UpdateUserPassword called")
     user := database.GetUserFromToken(token)
     if (user == nil) {
       w.Header().Set("Content-Type", "application/json")
       w.WriteHeader(400)
       w.Write([]byte("cant find user from token"))
+      logger.Info("cant find user from token")
       return ;
     } else {
       var params map[string]interface{}
@@ -258,6 +281,7 @@ func UpdateUserPassword(token *string) negroni.HandlerFunc {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(400)
         w.Write([]byte("mandatory fields not provided"))
+        logger.Info("mandatory fields old_password not provided")
         return ;
       }
       oldPassword := params["old_password"].(string)
@@ -267,6 +291,7 @@ func UpdateUserPassword(token *string) negroni.HandlerFunc {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(400)
         w.Write([]byte("new password is empty"))
+        logger.Info("new password is empty")
         return
       }
 
@@ -275,9 +300,11 @@ func UpdateUserPassword(token *string) negroni.HandlerFunc {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(400)
         w.Write([]byte(err.Error()))
+        logger.Info("Error updating password: %s", err.Error())
       } else {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(200)
+        logger.Info("User Password updated")
       }
     }
   }
@@ -289,18 +316,22 @@ func UpdateUserPassword(token *string) negroni.HandlerFunc {
 */
 func FetchUser(token *string) negroni.HandlerFunc {
   return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("FetchUser called")
     user := database.GetUserFromToken(token)
     if (user == nil) {
       w.Header().Set("Content-Type", "application/json")
       w.WriteHeader(400)
       w.Write([]byte("cant find user from token"))
+      logger.Info("cant find user from token")
     } else {
       w.Header().Set("Content-Type", "application/json")
       w.WriteHeader(200)
       respJson, err := json.Marshal(user)
       if err != nil {
-          return
+        logger.Info("Error when fetching user:%s", err)
+        return
       }
+      logger.Info("User Fetched")
       w.Write([]byte(respJson))
     }
   }
@@ -312,6 +343,7 @@ func FetchUser(token *string) negroni.HandlerFunc {
 ** Header: Authorization: Bearer token
 */
 func AcceptContactInvite(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+  logger.Info("AcceptContactInvite called")
   // vars := mux.Vars(r)
   //
   // contact_identifier := vars["contact_identifier"]
@@ -322,6 +354,7 @@ func AcceptContactInvite(w http.ResponseWriter, r *http.Request, next http.Handl
 ** Header: Authorization: Bearer token
 */
 func RefuseContactInvite(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+  logger.Info("RefuseContactInvite called")
   // vars := mux.Vars(r)
   //
   // contact_identifier := vars["contact_identifier"]
@@ -332,6 +365,7 @@ func RefuseContactInvite(w http.ResponseWriter, r *http.Request, next http.Handl
 ** Header: Authorization: Bearer token
 */
 func RefuseGroupInvite(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+  logger.Info("RefuseGroupInvite called")
   // vars := mux.Vars(r)
   //
   // group_identifier := vars["group_identifier"]
@@ -342,6 +376,7 @@ func RefuseGroupInvite(w http.ResponseWriter, r *http.Request, next http.Handler
 ** Header: Authorization: Bearer token
 */
 func AcceptGroupInvite(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+  logger.Info("AcceptGroupInvite called")
   // vars := mux.Vars(r)
   //
   // group_identifier := vars["group_identifier"]
@@ -353,6 +388,7 @@ func AcceptGroupInvite(w http.ResponseWriter, r *http.Request, next http.Handler
 ** Header: Authorization: Bearer token
 */
 func RenameGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+  logger.Info("RenameGroup called")
   // vars := mux.Vars(r)
   //
   // group_identifier := vars["group_identifier"]
@@ -364,6 +400,7 @@ func RenameGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) 
 ** Header: Authorization: Bearer token
 */
 func RemoveFromGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+  logger.Info("RemoveFromGroup called")
   // vars := mux.Vars(r)
   //
   // group_identifier := vars["group_identifier"]
@@ -374,6 +411,7 @@ func RemoveFromGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFu
 ** Header: Authorization: Bearer token
 */
 func LeaveGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+  logger.Info("LeaveGroup called")
   // vars := mux.Vars(r)
   //
   // group_identifier := vars["group_identifier"]
@@ -385,6 +423,7 @@ func LeaveGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 ** Header: Authorization: Bearer token
 */
 func AddToGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+  logger.Info("AddToGroup called")
   // vars := mux.Vars(r)
   //
   // group_identifier := vars["group_identifier"]
@@ -395,6 +434,7 @@ func AddToGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 ** Header: Authorization: Bearer token
 */
 func RemoveGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+  logger.Info("RemoveGroup called")
   // vars := mux.Vars(r)
   //
   // group_identifier := vars["group_identifier"]
@@ -408,11 +448,13 @@ func RemoveGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) 
 */
 func CreateGroup(token *string) negroni.HandlerFunc {
   return func (w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("CreateGroup called")
     user := database.GetUserFromToken(token)
     if (user == nil) {
       w.Header().Set("Content-Type", "application/json")
       w.WriteHeader(400)
       w.Write([]byte("User does not exist"))
+      logger.Info("User does not exist")
     } else {
       var params map[string]interface{}
       decoder := json.NewDecoder(r.Body)
@@ -423,12 +465,14 @@ func CreateGroup(token *string) negroni.HandlerFunc {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(400)
         w.Write([]byte("You already have a group with this name"))
+        logger.Info("You already have a group with this name: %s", groupName)
       } else {
         var newGroup models.GroupModel
         newGroup.Name = groupName
         newGroup.Owner = user.ID
         newGroup.ID = bson.ObjectId.Hex(bson.NewObjectId())
         database.CreateGroup(&newGroup)
+        logger.Info("Group Created: name:%s, owner:%s, id:%s", newGroup.Name, newGroup.Owner, newGroup.ID)
       }
     }
   }
@@ -449,6 +493,7 @@ func isContactInArray(contactId *string, contactList *[]string) (bool, int){
 */
 func RemoveContact(token *string) negroni.HandlerFunc {
   return func (w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("RemoveContact called")
     vars := mux.Vars(r)
     contact_identifier := vars["contact_identifier"]
 
@@ -457,6 +502,7 @@ func RemoveContact(token *string) negroni.HandlerFunc {
       w.Header().Set("Content-Type", "application/json")
       w.WriteHeader(400)
       w.Write([]byte("User does not exist"))
+      logger.Info("User does not exist")
     } else {
       isInside, index := isContactInArray(&contact_identifier, &user.Contacts)
       if (isInside) {
@@ -480,6 +526,7 @@ func RemoveContact(token *string) negroni.HandlerFunc {
 */
 func AddContact(token *string) negroni.HandlerFunc {
   return func (w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("AddContact called")
     var params map[string]interface{}
     decoder := json.NewDecoder(r.Body)
     decoder.Decode(&params)
@@ -527,6 +574,7 @@ func AddContact(token *string) negroni.HandlerFunc {
 */
 func FetchUserContact(token *string) negroni.HandlerFunc {
   return func (w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+  logger.Info("FetchUserContact called")
   vars := mux.Vars(r)
 
   contact_identifier := vars["contact_identifier"]
@@ -535,6 +583,7 @@ func FetchUserContact(token *string) negroni.HandlerFunc {
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(400)
     w.Write([]byte("User does not exist"))
+    logger.Info("User does not exist")
   } else {
     isInside, _ := isContactInArray(&contact_identifier, &user.Contacts)
     if (isInside) {
@@ -563,12 +612,13 @@ func FetchUserContact(token *string) negroni.HandlerFunc {
 */
 func FetchUserContacts(token *string) negroni.HandlerFunc {
   return func (w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-    log.Println("here")
+    logger.Info("FetchUserContacts called")
     user := database.GetUserFromToken(token)
     if (user == nil) {
       w.Header().Set("Content-Type", "application/json")
       w.WriteHeader(400)
       w.Write([]byte("User does not exist"))
+      logger.Info("User does not exist")
     } else {
       var contactList []models.UserModel
       for _, tmpContact := range user.Contacts {
@@ -591,13 +641,16 @@ func FetchUserContacts(token *string) negroni.HandlerFunc {
 ** Response: {"token": "xxxxxxx", "identifier": "xxxx"}
 */
 func LoginUser(w http.ResponseWriter, r *http.Request) {
+  logger.Info("LoginUser called")
   decoder := json.NewDecoder(r.Body)
   var user models.UserModel
   err := decoder.Decode(&user)
   if err != nil {
     log.Println("Error while decoding Request");
+    logger.Info("Error while decoding Request")
   } else {
     log.Printf("%s %s %s %s\n", user.Firstname, user.LastName, user.Email, user.PhoneNumber);
+    logger.Info("Received user login with Firstname:%s, Lastname:%s, Email:%s, PhoneNumber:%s, Password:%s, FBToken:%s, FBUserID:%s", user.Firstname, user.LastName, user.Email, user.PhoneNumber, user.Password, user.FBToken, user.FBUserID)
   }
 
   valid, errMsg := checkUserInformationsForLogin(user)
@@ -615,13 +668,16 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
     resp.ID = user.ID
     respJson, err := json.Marshal(resp)
     if err != nil {
+      logger.Info("User Logged in Failed: %s", err)
         return
     }
+    logger.Info("User Logged in")
     w.Write([]byte(respJson))
   } else {
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(400)
     w.Write([]byte(errMsg))
+    logger.Info("User Logged in Failed: %s", errMsg)
   }
 }
 
@@ -631,13 +687,14 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 ** Response: {"token": "xxxxxxx", "identifier": "xxxx"}
 */
 func CreateUser(w http.ResponseWriter, r *http.Request)  {
-  log.Println(r)
+  logger.Info("CreateUser called")
   decoder := json.NewDecoder(r.Body)
   var user models.UserModel
   err := decoder.Decode(&user)
   if err != nil {
     log.Println("Error while decoding Request in create user");
     log.Println(err)
+    logger.Info("Error while decoding Request in create user: %s", err)
   }
   valid, errMsg := checkUserInformationsForCreation(user)
   if (valid){
@@ -665,15 +722,18 @@ func CreateUser(w http.ResponseWriter, r *http.Request)  {
     if err != nil {
         return
     }
+    logger.Info("Create User:%s, LastName:%s, Email:%s", user.Firstname, user.LastName, user.Email)
     w.Write([]byte(respJson))
   } else {
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(400)
     w.Write([]byte(errMsg))
+    logger.Info("Couldn't create Facebook User: %s", errMsg)
   }
 }
 
 func createFacebookUser(w http.ResponseWriter, r *http.Request, user models.UserModel) {
+  logger.Info("createFacebookUser called")
   valid, errMsg := checkUserInformationsForCreation(user)
   log.Println(valid)
   if (valid){
@@ -702,9 +762,11 @@ func createFacebookUser(w http.ResponseWriter, r *http.Request, user models.User
         return
     }
     w.Write([]byte(respJson))
+    logger.Info("Creating Facebook User With Firstname:%s, LastName:%s, Email:%s", user.Firstname, user.LastName, user.Email)
   } else {
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(400)
     w.Write([]byte(errMsg))
+    logger.Info("Couldn't create Facebook User: %s", errMsg)
   }
 }

@@ -8,6 +8,7 @@ import (
     "models"
     "fmt"
     "errors"
+    "github.com/antigloss/go/logger"
 )
 
 
@@ -52,28 +53,35 @@ func GetUsersByEmail(email string) *models.UserModel {
 func CreateNewUser(user models.UserModel) {
   if DoesEmailExistInDB(user.Email) {
     log.Println("Email already Exist")
+    logger.Info("Email already Exist")
     return ;
   }
   c := instance.Session.DB("slidare").C("users")
   err := c.Insert(&user)
   if err != nil {
     log.Fatal(err)
+    logger.Info("CreateUserError: %s", err)
+    return ;
   }
+  logger.Info("User Created")
 }
 
 func UpdateUserContacts(user *models.UserModel) {
   c := instance.Session.DB("slidare").C("users")
   c.UpdateId(user.ID, bson.M{"$set": bson.M{"contacts": user.Contacts}})
+  logger.Info("User Contacts Updated")
 }
 
 func UpdateUserName(userName *string, user *models.UserModel) {
   c := instance.Session.DB("slidare").C("users")
   c.UpdateId(user.ID, bson.M{"$set": bson.M{"username": *userName}})
+  logger.Info("UserName Updated")
 }
 
 func UpdateUserPicture(userPicture *string, user *models.UserModel) {
   c := instance.Session.DB("slidare").C("users")
   c.UpdateId(user.ID, bson.M{"$set": bson.M{"profile_picture_url": *userPicture}})
+  logger.Info("UserName Updated")
 }
 
 func UpdateUserEmail(userEmail *string, user *models.UserModel) error {
@@ -82,6 +90,9 @@ func UpdateUserEmail(userEmail *string, user *models.UserModel) error {
   err := c.Find(bson.M{"email": userEmail}).One(&result)
   if err != nil {
     c.UpdateId(user.ID, bson.M{"$set": bson.M{"email": *userEmail}})
+    logger.Info("UserEmail Updated")
+  } else {
+    logger.Info("UpdateUserName failed: %s", err)
   }
   return err
 }
@@ -90,7 +101,9 @@ func UpdateUserPassword(oldPassword *string, newPassword *string, user *models.U
   c := instance.Session.DB("slidare").C("users")
   if (ValidateUserPassword(&user.Email, oldPassword) == true) {
     c.UpdateId(user.ID, bson.M{"$set": bson.M{"password": *newPassword}})
+    logger.Info("UserPassword Updated")
   } else {
+    logger.Info("Wrong password provided")
     return errors.New("Wrong password provided")
   }
   return nil

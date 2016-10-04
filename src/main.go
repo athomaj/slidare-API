@@ -11,6 +11,7 @@ import (
     "github.com/codegangsta/negroni"
     "core/authentication"
     "mydb"
+    "github.com/antigloss/go/logger"
   //  "github.com/davecgh/go-spew/spew"
 )
 
@@ -21,7 +22,27 @@ type AuthModel struct
 
 func main() {
     router := mux.NewRouter().StrictSlash(true)
+
+    logger.Init("./log", // specify the directory to save the logfiles
+                400, // maximum logfiles allowed under the specified log directory
+                20, // number of logfiles to delete when number of logfiles exceeds the configured limit
+                100, // maximum size of a logfile in MB
+                false) // whether logs with Trace level are written down
+
+    defer func() { //catch or finally
+      if err := recover(); err != nil { //catch
+        logger.Info("initDatabaseError: %s", err)
+        log.Println("initDatabaseError:", err)
+        return ;
+      }
+    }()
     database.Init()
+
+    logger.Info("initDatabase success")
+    log.Println("initDatabase success")
+
+
+//    logger.Info("Failed to find player! uid=%d plid=%d cmd=%s xxx=%d", 1234, 678942, "getplayer", 102020101)
 
     var token string
     router.Handle("/getUserContacts", negroni.New(
@@ -113,7 +134,7 @@ func main() {
     router.HandleFunc("/loginUser", userControllers.LoginUser).Methods("POST")
     router.HandleFunc("/token-auth", controllers.Login).Methods("POST")
 
-    log.Fatal(http.ListenAndServe(":50000", router))
+    logger.Info(http.ListenAndServe(":50000", router).Error())
 }
 
 func getUserContacts(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
