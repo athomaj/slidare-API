@@ -92,7 +92,7 @@ func UpdateUserEmail(userEmail *string, user *models.UserModel) error {
     c.UpdateId(user.ID, bson.M{"$set": bson.M{"email": *userEmail}})
     logger.Info("UserEmail Updated")
   } else {
-    logger.Info("UpdateUserName failed: %s", err)
+    logger.Info("UpdateUserEmail failed: %s", err)
   }
   return err
 }
