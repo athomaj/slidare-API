@@ -65,6 +65,10 @@ func main() {
         negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
         negroni.HandlerFunc(userControllers.RemoveContact(&token)),
         )).Methods("DELETE")
+    router.Handle("/removeContactByEmail/{contact_email}", negroni.New(
+        negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
+        negroni.HandlerFunc(userControllers.RemoveContact(&token)),
+        )).Methods("DELETE")
     router.Handle("/createGroup", negroni.New(
         negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
         negroni.HandlerFunc(userControllers.CreateGroup(&token)),
