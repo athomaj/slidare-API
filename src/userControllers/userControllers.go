@@ -560,9 +560,14 @@ func AddContact(token *string) negroni.HandlerFunc {
             // element is the element from someSlice for where we are
           }
         }
+        database.AddContactToUser(&user.Email, &contact.ID)
+        respJson, err := json.Marshal(bson.M{"contact": contact})
+	if err != nil {
+       		return;
+      	}
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(200)
-        database.AddContactToUser(&user.Email, &contact.ID)
+        w.Write([]byte(respJson))
       }
     }
   }
