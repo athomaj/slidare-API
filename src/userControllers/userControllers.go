@@ -525,7 +525,7 @@ func RemoveContact(token *string) negroni.HandlerFunc {
 */
 func RemoveContactByEmail(token *string) negroni.HandlerFunc {
   return func (w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-    logger.Info("RemoveContact called")
+    logger.Info("RemoveContactByEmail called")
     vars := mux.Vars(r)
     contact_email := vars["contact_email"]
     contact := database.GetUsersByEmail(contact_email)
@@ -542,13 +542,13 @@ func RemoveContactByEmail(token *string) negroni.HandlerFunc {
       if (isInside) {
         user.Contacts = append(user.Contacts[:index], user.Contacts[index+1:]...)
         database.UpdateUserContacts(user)
-        respJson, err := json.Marshal(bson.M{"response": "Contact deleted succesfully"})
+	       respJson, err := json.Marshal(bson.M{"response": "Contact deleted succesfully"})
         if err != nil {
             return
         }
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(200)
-        w.Write([]byte(respJson))
+    	   w.Write([]byte(respJson))
       } else {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(400)
@@ -603,14 +603,14 @@ func AddContact(token *string) negroni.HandlerFunc {
             // element is the element from someSlice for where we are
           }
         }
+        database.AddContactToUser(&user.Email, &contact.ID)
         respJson, err := json.Marshal(bson.M{"contact": contact})
-        if err != nil {
-            return
-        }
+      	if err != nil {
+             		return;
+            	}
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(200)
         w.Write([]byte(respJson))
-        database.AddContactToUser(&user.Email, &contact.ID)
       }
     }
   }
