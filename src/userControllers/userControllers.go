@@ -520,7 +520,7 @@ func RemoveContact(token *string) negroni.HandlerFunc {
 }
 
 /*
-** DELETE Request on /removeContact/{contact_identifier}
+** DELETE Request on /removeContactByEmail/{contact_identifier}
 ** Header: Authorization: Bearer token
 */
 func RemoveContactByEmail(token *string) negroni.HandlerFunc {
@@ -542,8 +542,13 @@ func RemoveContactByEmail(token *string) negroni.HandlerFunc {
       if (isInside) {
         user.Contacts = append(user.Contacts[:index], user.Contacts[index+1:]...)
         database.UpdateUserContacts(user)
+        respJson, err := json.Marshal(bson.M{"response": "Contact deleted succesfully"})
+        if err != nil {
+            return
+        }
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(200)
+        w.Write([]byte(respJson))
       } else {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(400)
@@ -599,6 +604,9 @@ func AddContact(token *string) negroni.HandlerFunc {
           }
         }
         respJson, err := json.Marshal(bson.M{"contact": contact})
+        if err != nil {
+            return
+        }
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(200)
         w.Write([]byte(respJson))
