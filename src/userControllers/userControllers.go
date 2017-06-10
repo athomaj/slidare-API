@@ -520,6 +520,45 @@ func RemoveContact(token *string) negroni.HandlerFunc {
 }
 
 /*
+** DELETE Request on /removeContact/{contact_identifier}
+** Header: Authorization: Bearer token
+*/
+func RemoveContactByEmail(token *string) negroni.HandlerFunc {
+  return func (w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("RemoveContactByEmail called")
+    vars := mux.Vars(r)
+    contact_email := vars["contact_email"]
+    contact := database.GetUsersByEmail(contact_email)
+    contact_identifier := contact.ID
+
+    user := database.GetUserFromToken(token)
+    if (user == nil) {
+      w.Header().Set("Content-Type", "application/json")
+      w.WriteHeader(400)
+      w.Write([]byte("User does not exist"))
+      logger.Info("User does not exist")
+    } else {
+      isInside, index := isContactInArray(&contact_identifier, &user.Contacts)
+      if (isInside) {
+        user.Contacts = append(user.Contacts[:index], user.Contacts[index+1:]...)
+        database.UpdateUserContacts(user)
+	respJson, err := json.Marshal(bson.M{"response": "Contact deleted succesfully"})
+        if err != nil {
+            return
+        }
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(200)
+	w.Write([]byte(respJson))
+      } else {
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(400)
+        w.Write([]byte("Contact not in user's contact list"))
+      }
+    }
+  }
+}
+
+/*
 ** POST Request on /addContact
 ** Arguments: email
 ** Header: Authorization: Bearer token
@@ -536,18 +575,21 @@ func AddContact(token *string) negroni.HandlerFunc {
       w.Header().Set("Content-Type", "application/json")
       w.WriteHeader(400)
       w.Write([]byte("No email provided"))
+      logger.Info("AddContact: No email provided")
     } else {
       contact := database.GetUsersByEmail(email.(string))
       if (contact == nil) {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(400)
         w.Write([]byte("No user with this Email"))
+        logger.Info("AddContact: No user with this Email")
       } else {
         user := database.GetUserFromToken(token)
         if (email == user.Email) {
           w.Header().Set("Content-Type", "application/json")
           w.WriteHeader(400)
           w.Write([]byte("Same Email as the logged user"))
+          logger.Info("AddContact: Same Email as the logged user")
           return ;
         } else {
           for _,tmpContact := range user.Contacts {
@@ -555,6 +597,7 @@ func AddContact(token *string) negroni.HandlerFunc {
               w.Header().Set("Content-Type", "application/json")
               w.WriteHeader(400)
               w.Write([]byte("user already in your contacts"))
+              logger.Info("AddContact: user already in your contacts")
               return ;
             }
             // element is the element from someSlice for where we are
