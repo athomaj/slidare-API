@@ -69,17 +69,21 @@ func main() {
         negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
         negroni.HandlerFunc(userControllers.RemoveContactByEmail(&token)),
         )).Methods("DELETE")
+    router.Handle("/fetchGroups", negroni.New(
+        negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
+        negroni.HandlerFunc(userControllers.FetchGroups(&token)),
+        )).Methods("GET")
     router.Handle("/createGroup", negroni.New(
         negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
         negroni.HandlerFunc(userControllers.CreateGroup(&token)),
         )).Methods("POST")
     router.Handle("/removeGroup/{group_identifier}", negroni.New(
         negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
-        negroni.HandlerFunc(userControllers.FetchUserContact(&token)),
+        negroni.HandlerFunc(userControllers.RemoveGroup(&token)),
         )).Methods("DELETE")
     router.Handle("/addToGroup/{group_identifier}", negroni.New(
         negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
-        negroni.HandlerFunc(userControllers.FetchUserContact(&token)),
+        negroni.HandlerFunc(userControllers.AddToGroup(&token)),
         )).Methods("PUT")
     router.Handle("/leaveGroup/{group_identifier}", negroni.New(
         negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
@@ -87,7 +91,7 @@ func main() {
         )).Methods("PUT")
     router.Handle("/removeFromGroup/{group_identifier}", negroni.New(
         negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
-        negroni.HandlerFunc(userControllers.FetchUserContact(&token)),
+        negroni.HandlerFunc(userControllers.RemoveFromGroup(&token)),
         )).Methods("PUT")
     router.Handle("/renameGroup/{group_identifier}", negroni.New(
         negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),

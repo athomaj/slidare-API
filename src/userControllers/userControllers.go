@@ -382,6 +382,27 @@ func AcceptGroupInvite(w http.ResponseWriter, r *http.Request, next http.Handler
   // group_identifier := vars["group_identifier"]
 }
 
+func FetchGroups(token *string) negroni.HandlerFunc {
+  return func (w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("FetchGroups called")
+    user := database.GetUserFromToken(token)
+    if (user == nil) {
+      w.WriteHeader(400)
+      w.Write([]byte("User does not exist"))
+      logger.Info("User does not exist")
+    } else {
+      data := database.FetchGroupsFromUser(&user.ID, &user.Email)
+      respJson, err := json.Marshal(bson.M{"groups": data})
+      if err != nil {
+          return;
+      }
+      w.WriteHeader(200)
+      w.Write([]byte(respJson))
+    }
+  }
+}
+
+
 /*
 ** PUT Request on /renameGroup/{group_identifier}
 ** Arguments: name
@@ -394,17 +415,6 @@ func RenameGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) 
   // group_identifier := vars["group_identifier"]
 }
 
-/*
-** PUT Request on /removeFromGroup/{group_identifier}
-** Arguments: contact_identifier
-** Header: Authorization: Bearer token
-*/
-func RemoveFromGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-  logger.Info("RemoveFromGroup called")
-  // vars := mux.Vars(r)
-  //
-  // group_identifier := vars["group_identifier"]
-}
 
 /*
 ** PUT Request on /leaveGroup/{group_identifier}
@@ -418,26 +428,129 @@ func LeaveGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 }
 
 /*
+** PUT Request on /removeFromGroup/{group_identifier}
+** Arguments: contact_identifier
+** Header: Authorization: Bearer token
+*/
+func RemoveFromGroup(token *string) negroni.HandlerFunc {
+  return func (w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("RemoveFromGroup called")
+    user := database.GetUserFromToken(token)
+    if (user == nil) {
+      w.WriteHeader(400)
+      w.Write([]byte("User does not exist"))
+      logger.Info("User does not exist")
+    } else {
+      vars := mux.Vars(r)
+      groupName := vars["group_identifier"]
+
+      if (database.IsExistingGroup(&groupName, &user.ID) == true) {
+        var params map[string]interface{}
+        decoder := json.NewDecoder(r.Body)
+        decoder.Decode(&params)
+
+        if (params["contact_identifier"] == nil) {
+          w.WriteHeader(400)
+          w.Write([]byte("No contact indentifier specified"))
+          logger.Info("No contact indentifier specified")
+          return ;
+        }
+        contactId := params["contact_identifier"].(string)
+        strErr := database.RemoveFromGroup(&groupName, &user.ID, &contactId)
+        if (strErr == "") {
+          w.WriteHeader(200)
+          w.Write([]byte("User removed from group"))
+        } else {
+          w.WriteHeader(400)
+          w.Write([]byte(strErr))
+        }
+      } else {
+        w.WriteHeader(400)
+        w.Write([]byte("No group with that name"))
+        logger.Info("You already have a group with this name: %s", groupName)
+        log.Println("No group with that name")
+      }
+    }
+  }
+}
+
+
+/*
 ** PUT Request on /addToGroup/{group_identifier}
 ** Arguments: contact_identifier
 ** Header: Authorization: Bearer token
 */
-func AddToGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-  logger.Info("AddToGroup called")
-  // vars := mux.Vars(r)
-  //
-  // group_identifier := vars["group_identifier"]
+func AddToGroup(token *string) negroni.HandlerFunc {
+  return func (w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("AddToGroup called")
+    user := database.GetUserFromToken(token)
+    if (user == nil) {
+      w.WriteHeader(400)
+      w.Write([]byte("User does not exist"))
+      logger.Info("User does not exist")
+    } else {
+      vars := mux.Vars(r)
+      groupName := vars["group_identifier"]
+
+      if (database.IsExistingGroup(&groupName, &user.ID) == true) {
+        var params map[string]interface{}
+        decoder := json.NewDecoder(r.Body)
+        decoder.Decode(&params)
+
+        if (params["contact_identifier"] == nil) {
+          w.WriteHeader(400)
+          w.Write([]byte("No contact indentifier specified"))
+          logger.Info("No contact indentifier specified")
+          return ;
+        }
+        contactId := params["contact_identifier"].(string)
+        strErr := database.AddToGroup(&groupName, &user.ID, &contactId)
+        if (strErr == "") {
+          w.WriteHeader(200)
+          w.Write([]byte("User added to group"))
+        } else {
+          w.WriteHeader(400)
+          w.Write([]byte(strErr))
+        }
+      } else {
+        w.WriteHeader(400)
+        w.Write([]byte("No group with that name"))
+        logger.Info("You already have a group with this name: %s", groupName)
+        log.Println("No group with that name")
+      }
+    }
+  }
 }
 
 /*
 ** DELETE Request on /removeGroup/{group_identifier}
 ** Header: Authorization: Bearer token
 */
-func RemoveGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-  logger.Info("RemoveGroup called")
-  // vars := mux.Vars(r)
-  //
-  // group_identifier := vars["group_identifier"]
+func RemoveGroup(token *string) negroni.HandlerFunc {
+  return func (w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("RemoveGroup called")
+    log.Println("RemoveGroup called")
+    user := database.GetUserFromToken(token)
+    if (user == nil) {
+      w.WriteHeader(400)
+      w.Write([]byte("User does not exist"))
+      logger.Info("User does not exist")
+    } else {
+      vars := mux.Vars(r)
+      groupName := vars["group_identifier"]
+
+      if (database.IsExistingGroup(&groupName, &user.ID) == true) {
+        database.DeleteGroup(&groupName, &user.ID)
+        w.WriteHeader(200)
+        w.Write([]byte("Group Deleted"))
+      } else {
+        w.WriteHeader(400)
+        w.Write([]byte("No group with that name"))
+        logger.Info("You already have a group with this name: %s", groupName)
+        log.Println("No group with that name")
+      }
+    }
+  }
 }
 
 /*
@@ -459,10 +572,18 @@ func CreateGroup(token *string) negroni.HandlerFunc {
       var params map[string]interface{}
       decoder := json.NewDecoder(r.Body)
       decoder.Decode(&params)
+
+      log.Println(params["name"])
+
+      if (params["name"] == nil){
+        w.WriteHeader(400)
+        w.Write([]byte("No Group Name specified"))
+        logger.Info("No Group Name specified")
+        return ;
+      }
       groupName := params["name"].(string)
 
       if (database.IsExistingGroup(&groupName, &user.ID) == true) {
-        w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(400)
         w.Write([]byte("You already have a group with this name"))
         logger.Info("You already have a group with this name: %s", groupName)
@@ -472,7 +593,14 @@ func CreateGroup(token *string) negroni.HandlerFunc {
         newGroup.Owner = user.ID
         newGroup.ID = bson.ObjectId.Hex(bson.NewObjectId())
         database.CreateGroup(&newGroup)
+        respJson, err := json.Marshal(bson.M{"group_id": newGroup.ID})
+         if err != nil {
+             return
+         }
         logger.Info("Group Created: name:%s, owner:%s, id:%s", newGroup.Name, newGroup.Owner, newGroup.ID)
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(200)
+        w.Write([]byte(respJson))
       }
     }
   }

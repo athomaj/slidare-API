@@ -187,9 +187,67 @@ func IsExistingGroup(groupName *string, userId *string) bool {
   return err == nil
 }
 
+func FetchGroupsFromUser(userId *string, userEmail *string) []models.GroupModel {
+  c := instance.Session.DB("slidare").C("groups")
+  result := []models.GroupModel{}
+  c.Find(bson.M{
+    "owner": *userId,}).All(&result)
+
+  result2 := []models.GroupModel{}
+  c.Find(bson.M{
+    "users": *userEmail,}).All(&result2)
+
+    result = append(result, result2...)
+
+  return result
+  // for _,tmpUser := range result.Users {
+  //   if (*userToAdd == tmpUser) {
+  //     return "User Already in Group";
+  //   }
+  // }
+  // result.Users = append(result.Users, *userToAdd)
+  // c.UpdateId(result.ID, &result);
+  // return "";
+}
+
+func AddToGroup(groupName *string, userId *string, userToAdd *string) string {
+  c := instance.Session.DB("slidare").C("groups")
+  result := models.GroupModel{}
+  c.Find(bson.M{"name": *groupName, "owner": *userId}).One(&result)
+  for _,tmpUser := range result.Users {
+    if (*userToAdd == tmpUser) {
+      return "User Already in Group";
+    }
+  }
+  result.Users = append(result.Users, *userToAdd)
+  c.UpdateId(result.ID, &result);
+  return "";
+}
+
+func RemoveFromGroup(groupName *string, userId *string, userToAdd *string) string {
+  c := instance.Session.DB("slidare").C("groups")
+  result := models.GroupModel{}
+  c.Find(bson.M{"name": *groupName, "owner": *userId}).One(&result)
+  for idx,tmpUser := range result.Users {
+    if (*userToAdd == tmpUser) {
+//      result.Users = append(result.Users, *userToAdd)
+      result.Users = append(result.Users[:idx], result.Users[idx+1:]...)
+      c.UpdateId(result.ID, &result);
+      return "";
+    }
+  }
+  return "User not in Group";
+}
+
 func CreateGroup(groupModel *models.GroupModel) {
   c := instance.Session.DB("slidare").C("groups")
   c.Insert(groupModel)
+}
+
+func DeleteGroup(groupName *string, userId *string) {
+  c := instance.Session.DB("slidare").C("groups")
+  err := c.Remove(bson.M{"name": *groupName, "owner": *userId})
+  log.Println(err)
 }
 
 func ValidateUserPassword(userEmail *string, userPassword *string) bool {
