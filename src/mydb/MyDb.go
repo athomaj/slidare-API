@@ -183,7 +183,7 @@ func AddFileToUser(userEmail *string, fileUrl string) {
     c := instance.Session.DB("slidare").C("users")
     result := models.UserModel{}
     c.Find(bson.M{"email": *userEmail}).One(&result)
-    result.FileUrls = append(result.Contacts, *fileUrl);
+    result.FileUrls = append(result.Contacts, fileUrl);
     c.UpdateId(result.ID, &result)
 }
 
