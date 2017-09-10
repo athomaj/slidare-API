@@ -179,6 +179,14 @@ func AddContactToUser(userEmail *string, contactID *string) {
     c.UpdateId(result.ID, &result)
 }
 
+func AddFileToUser(userEmail *string, fileUrl *string) {
+    c := instance.Session.DB("slidare").C("users")
+    result := models.UserModel{}
+    c.Find(bson.M{"email": *userEmail}).One(&result)
+    result.FileUrls = append(result.Contacts, *fileUrl);
+    c.UpdateId(result.ID, &result)
+}
+
 func IsExistingGroup(groupName *string, userId *string) bool {
   c := instance.Session.DB("slidare").C("groups")
   result := models.GroupModel{}

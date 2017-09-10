@@ -6,3 +6,4 @@ type GroupModel struct {
   ID string `json:"id" bson:"_id,omitempty" `
   Users []string `json:"users,omitempty" bson:"users,omitempty"`
 }
+//

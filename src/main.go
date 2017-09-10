@@ -137,6 +137,18 @@ func main() {
         negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
         negroni.HandlerFunc(userControllers.UpdateUserPassword(&token)),
         )).Methods("POST")
+    router.Handle("/addFileToList", negroni.New(
+        negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
+        negroni.HandlerFunc(userControllers.AddFileToList(&token)),
+        )).Methods("POST")
+    router.Handle("/removeFileFromList", negroni.New(
+        negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
+        negroni.HandlerFunc(userControllers.RemoveFileFromList(&token)),
+        )).Methods("POST")
+    router.Handle("/getUserFiles", negroni.New(
+        negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
+        negroni.HandlerFunc(userControllers.GetUserFiles(&token)),
+        )).Methods("GET")
 
     router.HandleFunc("/createUser", userControllers.CreateUser).Methods("POST")
     router.HandleFunc("/loginUser", userControllers.LoginUser).Methods("POST")

@@ -812,6 +812,102 @@ func FetchUserContacts(token *string) negroni.HandlerFunc {
 }
 
 /*
+** POST Request on /addFileToList
+** Arguments: Filename
+** Header: Authorization: Bearer token
+** Response: {}
+*/
+
+func AddFileToList(token *string) negroni.HandlerFunc {
+  return func (w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("AddFileToList called")
+    user := database.GetUserFromToken(token)
+    var params map[string]interface{}
+    decoder := json.NewDecoder(r.Body)
+    decoder.Decode(&params)
+
+    file_url := params["file_url"]
+    if (user == nil) {
+      w.Header().Set("Content-Type", "application/json")
+      w.WriteHeader(400)
+      w.Write([]byte("User does not exist"))
+      logger.Info("User does not exist")
+    } else {
+      database.AddFileToUser(&user.Email, file_url)
+      w.WriteHeader(200)
+      respJson, err := json.Marshal(bson.M{"success": "file added"})
+      if err != nil {
+          return
+      }
+      log.Println("resp", respJson)
+      w.Write([]byte(respJson))
+    }
+  }
+}
+
+/*
+** POST Request on /removeFileFromList
+** Arguments: Filename
+** Header: Authorization: Bearer token
+** Response: {}
+*/
+
+func RemoveFileFromList(token *string) negroni.HandlerFunc {
+  return func (w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("RemoveFileFromList called")
+    user := database.GetUserFromToken(token)
+    if (user == nil) {
+      w.Header().Set("Content-Type", "application/json")
+      w.WriteHeader(400)
+      w.Write([]byte("User does not exist"))
+      logger.Info("User does not exist")
+    } else {
+      var contactList []models.UserModel
+      for _, tmpContact := range user.Contacts {
+        contactList = append(contactList, *database.GetUserFromId(&tmpContact))
+      }
+      w.WriteHeader(200)
+      respJson, err := json.Marshal(bson.M{"contacts": contactList})
+      if err != nil {
+          return
+      }
+      log.Println("resp", respJson)
+      w.Write([]byte(respJson))
+    }
+  }
+}
+
+/*
+** POST Request on /getUserFiles
+** Arguments: none
+** Header: Authorization: Bearer token
+** Response: {[FileUrls]}
+*/
+
+func GetUserFiles(token *string) negroni.HandlerFunc {
+  return func (w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("AddFileToList called")
+    user := database.GetUserFromToken(token)
+    if (user == nil) {
+      w.Header().Set("Content-Type", "application/json")
+      w.WriteHeader(400)
+      w.Write([]byte("User does not exist"))
+      logger.Info("User does not exist")
+    } else {
+      w.WriteHeader(200)
+      respJson, err := json.Marshal(bson.M{"file_urls": user.FileUrls})
+      if err != nil {
+          return
+      }
+      log.Println("resp", respJson)
+      w.Write([]byte(respJson))
+    }
+  }
+}
+
+
+
+/*
 ** POST Request on /loginUser
 ** Arguments: firstname, lastname, password(exist when user doesn't login with facebook), email, fbtoken(exist when user login with facebook)
 ** Response: {"token": "xxxxxxx", "identifier": "xxxx"}

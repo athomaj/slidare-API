@@ -19,8 +19,8 @@ type Settings struct {
 	JWTExpirationDelta int
 }
 
-var settings Settings = Settings{PrivateKeyPath: "/home/ubuntu/Slidare/slidare-API/src/settings/keys/private_key",
-																PublicKeyPath: "/home/ubuntu/Slidare/slidare-API/src/settings/keys/public_key.pub",
+var settings Settings = Settings{PrivateKeyPath: "/Users/julienathomas/Projects/slidare-API/src/settings/keys/private_key",
+																PublicKeyPath: "/Users/julienathomas/Projects/slidare-API/src/settings/keys/public_key.pub",
 															JWTExpirationDelta: 72}
 var env = "preproduction"
 
