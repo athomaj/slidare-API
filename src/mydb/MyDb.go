@@ -179,7 +179,7 @@ func AddContactToUser(userEmail *string, contactID *string) {
     c.UpdateId(result.ID, &result)
 }
 
-func AddFileToUser(userEmail *string, fileUrl *string) {
+func AddFileToUser(userEmail *string, fileUrl string) {
     c := instance.Session.DB("slidare").C("users")
     result := models.UserModel{}
     c.Find(bson.M{"email": *userEmail}).One(&result)
