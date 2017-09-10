@@ -833,7 +833,7 @@ func AddFileToList(token *string) negroni.HandlerFunc {
       w.Write([]byte("User does not exist"))
       logger.Info("User does not exist")
     } else {
-      database.AddFileToUser(&user.Email, &file_url)
+      database.AddFileToUser(&user.Email, file_url.(string))
       w.WriteHeader(200)
       respJson, err := json.Marshal(bson.M{"success": "file added"})
       if err != nil {
