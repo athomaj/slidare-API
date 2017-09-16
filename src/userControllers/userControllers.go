@@ -410,7 +410,7 @@ func FetchGroups(token *string) negroni.HandlerFunc {
 ** Arguments: name
 ** Header: Authorization: Bearer token
 */
-func RenameGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+func RenameGroup(token *string) negroni.HandlerFunc {
   return func (w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
     logger.Info("CreateGroup called")
     user := database.GetUserFromToken(token)
