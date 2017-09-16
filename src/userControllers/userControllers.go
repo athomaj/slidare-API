@@ -255,6 +255,7 @@ func UpdateUserPicture(token *string) negroni.HandlerFunc {
       database.UpdateUserPicture(&userPicture, user)
       w.Header().Set("Content-Type", "application/json")
       w.WriteHeader(200)
+      w.Write([]byte("Picture Updated"))
       logger.Info("picture Updated")
     }
   }
