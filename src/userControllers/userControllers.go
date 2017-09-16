@@ -445,7 +445,7 @@ func RenameGroup(token *string) negroni.HandlerFunc {
         w.WriteHeader(400)
         w.Write([]byte("You do not have a group with this name"))
         logger.Info("You do not have a group with this name: %s", groupName)
-      } else if (database.IsExistingGroup(&newGroupName, &user.ID) == false) {
+      } else if (database.IsExistingGroup(&newGroupName, &user.ID) == true) {
         w.WriteHeader(400)
         w.Write([]byte("You already have a group with this name"))
         logger.Info("You already have a group with this name: %s", groupName)
