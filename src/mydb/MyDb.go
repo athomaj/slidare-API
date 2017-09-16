@@ -247,6 +247,16 @@ func RemoveFromGroup(groupName *string, userId *string, userToAdd *string) strin
   return "User not in Group";
 }
 
+func UpdateGroupName(groupName *string, userId *string, newGroupName *string) string {
+  c := instance.Session.DB("slidare").C("groups")
+  result := models.GroupModel{}
+  c.Find(bson.M{"name": *groupName, "owner": *userId}).One(&result)
+  result.Name = newGroupName
+  c.UpdateId(result.ID, &result);
+  return "";
+}
+
+
 func CreateGroup(groupModel *models.GroupModel) {
   c := instance.Session.DB("slidare").C("groups")
   c.Insert(groupModel)

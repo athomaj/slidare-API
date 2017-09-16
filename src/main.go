@@ -93,10 +93,6 @@ func main() {
         negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
         negroni.HandlerFunc(userControllers.RemoveFromGroup(&token)),
         )).Methods("PUT")
-    router.Handle("/renameGroup/{group_identifier}", negroni.New(
-        negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
-        negroni.HandlerFunc(userControllers.FetchUserContact(&token)),
-        )).Methods("PUT")
     router.Handle("/acceptGroupInvite/{group_identifier}", negroni.New(
         negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
         negroni.HandlerFunc(userControllers.FetchUserContact(&token)),
@@ -121,6 +117,10 @@ func main() {
     //     negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
     //     negroni.HandlerFunc(userControllers.UpdateUser(&token)),
     //     )).Methods("POST")
+    router.Handle("/renameGroup", negroni.New(
+        negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
+        negroni.HandlerFunc(userControllers.RenameGroup(&token)),
+        )).Methods("POST")
     router.Handle("/updateUserName", negroni.New(
         negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
         negroni.HandlerFunc(userControllers.UpdateUserName(&token)),

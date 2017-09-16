@@ -253,6 +253,8 @@ func UpdateUserPicture(token *string) negroni.HandlerFunc {
         return
       }
       database.UpdateUserPicture(&userPicture, user)
+      w.Header().Set("Content-Type", "application/json")
+      w.WriteHeader(200)
       logger.Info("picture Updated")
     }
   }
@@ -409,10 +411,57 @@ func FetchGroups(token *string) negroni.HandlerFunc {
 ** Header: Authorization: Bearer token
 */
 func RenameGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-  logger.Info("RenameGroup called")
-  // vars := mux.Vars(r)
-  //
-  // group_identifier := vars["group_identifier"]
+  return func (w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("CreateGroup called")
+    user := database.GetUserFromToken(token)
+    if (user == nil) {
+      w.Header().Set("Content-Type", "application/json")
+      w.WriteHeader(400)
+      w.Write([]byte("User does not exist"))
+      logger.Info("User does not exist")
+    } else {
+      var params map[string]interface{}
+      decoder := json.NewDecoder(r.Body)
+      decoder.Decode(&params)
+
+      log.Println(params["name"])
+
+      if (params["name"] == nil){
+        w.WriteHeader(400)
+        w.Write([]byte("No Group Name specified"))
+        logger.Info("No Group Name specified")
+        return ;
+      }
+      if (params["new_name"] == nil){
+        w.WriteHeader(400)
+        w.Write([]byte("No New Group Name specified"))
+        logger.Info("No New Group Name specified")
+        return ;
+      }
+      groupName := params["name"].(string)
+      newGroupName := params["new_name"].(string)
+
+      if (database.IsExistingGroup(&groupName, &user.ID) == false) {
+        w.WriteHeader(400)
+        w.Write([]byte("You do not have a group with this name"))
+        logger.Info("You do not have a group with this name: %s", groupName)
+      } else if (database.IsExistingGroup(&newGroupName, &user.ID) == false) {
+        w.WriteHeader(400)
+        w.Write([]byte("You already have a group with this name"))
+        logger.Info("You already have a group with this name: %s", groupName)
+      } else {
+        database.UpdateGroupName(&groupName, &user.ID, &newGroupName)
+        respJson, err := json.Marshal(bson.M{"group_id": newGroup.ID})
+         if err != nil {
+             return
+         }
+        logger.Info("Group Renamed: name:%s, owner:%s, id:%s", newGroup.Name, newGroup.Owner, newGroup.ID)
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(200)
+        w.Write([]byte(respJson))
+      }
+    }
+  }
 }
 
 
