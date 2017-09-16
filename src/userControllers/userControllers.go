@@ -451,11 +451,11 @@ func RenameGroup(token *string) negroni.HandlerFunc {
         logger.Info("You already have a group with this name: %s", groupName)
       } else {
         database.UpdateGroupName(&groupName, &user.ID, &newGroupName)
-        respJson, err := json.Marshal(bson.M{"group_id": newGroup.ID})
+        respJson, err := json.Marshal(bson.M{"group_name": newGroupName})
          if err != nil {
              return
          }
-        logger.Info("Group Renamed: name:%s, owner:%s, id:%s", newGroup.Name, newGroup.Owner, newGroup.ID)
+        logger.Info("Group Renamed: name:%s", newGroupName)
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(200)
         w.Write([]byte(respJson))
