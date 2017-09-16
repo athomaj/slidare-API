@@ -251,7 +251,7 @@ func UpdateGroupName(groupName *string, userId *string, newGroupName *string) st
   c := instance.Session.DB("slidare").C("groups")
   result := models.GroupModel{}
   c.Find(bson.M{"name": *groupName, "owner": *userId}).One(&result)
-  result.Name = newGroupName
+  result.Name = *newGroupName
   c.UpdateId(result.ID, &result);
   return "";
 }
