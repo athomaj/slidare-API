@@ -425,12 +425,10 @@ func RenameGroup(token *string) negroni.HandlerFunc {
       decoder := json.NewDecoder(r.Body)
       decoder.Decode(&params)
 
-      log.Println(params["name"])
-
-      if (params["name"] == nil){
+      if (params["name"] == nil && params["id"] == nil){
         w.WriteHeader(400)
-        w.Write([]byte("No Group Name specified"))
-        logger.Info("No Group Name specified")
+        w.Write([]byte("No Group Name or ID specified"))
+        logger.Info("No Group Name or ID specified")
         return ;
       }
       if (params["new_name"] == nil){
