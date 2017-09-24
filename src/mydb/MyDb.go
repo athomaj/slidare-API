@@ -195,6 +195,14 @@ func IsExistingGroup(groupName *string, userId *string) bool {
   return err == nil
 }
 
+func IsExistingGroupId(groupId *string, userId *string) bool {
+  c := instance.Session.DB("slidare").C("groups")
+  result := models.GroupModel{}
+  err := c.Find(bson.M{"id": *groupId, "owner": *userId}).One(&result)
+
+  return err == nil
+}
+
 func FetchGroupsFromUser(userId *string, userEmail *string) []models.GroupModel {
   c := instance.Session.DB("slidare").C("groups")
   result := []models.GroupModel{}
@@ -251,6 +259,15 @@ func UpdateGroupName(groupName *string, userId *string, newGroupName *string) st
   c := instance.Session.DB("slidare").C("groups")
   result := models.GroupModel{}
   c.Find(bson.M{"name": *groupName, "owner": *userId}).One(&result)
+  result.Name = *newGroupName
+  c.UpdateId(result.ID, &result);
+  return "";
+}
+
+func UpdateGroupNameById(groupId *string, userId *string, newGroupName *string) string {
+  c := instance.Session.DB("slidare").C("groups")
+  result := models.GroupModel{}
+  c.Find(bson.M{"id": *groupId, "owner": *userId}).One(&result)
   result.Name = *newGroupName
   c.UpdateId(result.ID, &result);
   return "";
