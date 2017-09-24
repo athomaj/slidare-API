@@ -448,7 +448,7 @@ func RenameGroup(token *string) negroni.HandlerFunc {
         } else if (database.IsExistingGroup(&newGroupName, &user.ID) == true) {
           w.WriteHeader(400)
           w.Write([]byte("You already have a group with this name"))
-          logger.Info("You already have a group with this name: %s", groupName)
+          logger.Info("You already have a group with this name: %s", newGroupName)
         } else {
           database.UpdateGroupName(&groupName, &user.ID, &newGroupName)
           respJson, err := json.Marshal(bson.M{"group_name": newGroupName})
@@ -464,12 +464,12 @@ func RenameGroup(token *string) negroni.HandlerFunc {
         groupId := params["id"].(string)
         if (database.IsExistingGroupId(&groupId, &user.ID) == false) {
           w.WriteHeader(400)
-          w.Write([]byte("You do not have a group with this name"))
-          logger.Info("You do not have a group with this name: %s", groupName)
+          w.Write([]byte("You do not have a group with this id"))
+          logger.Info("You do not have a group with this id: %s", groupId)
         } else if (database.IsExistingGroup(&newGroupName, &user.ID) == true) {
           w.WriteHeader(400)
           w.Write([]byte("You already have a group with this name"))
-          logger.Info("You already have a group with this name: %s", groupName)
+          logger.Info("You already have a group with this name: %s", newGroupName)
         } else {
           database.UpdateGroupNameById(&groupId, &user.ID, &newGroupName)
           respJson, err := json.Marshal(bson.M{"group_name": newGroupName})
