@@ -437,11 +437,10 @@ func RenameGroup(token *string) negroni.HandlerFunc {
         logger.Info("No New Group Name specified")
         return ;
       }
-      groupName := params["name"].(string)
-      groupId := params["id"].(string)
       newGroupName := params["new_name"].(string)
 
       if (params["name"] != nil) {
+        groupName := params["name"].(string)
         if (database.IsExistingGroup(&groupName, &user.ID) == false) {
           w.WriteHeader(400)
           w.Write([]byte("You do not have a group with this name"))
@@ -462,6 +461,7 @@ func RenameGroup(token *string) negroni.HandlerFunc {
           w.Write([]byte(respJson))
         }
       } else if (params["id"] != nil) {
+        groupId := params["id"].(string)
         if (database.IsExistingGroupId(&groupId, &user.ID) == false) {
           w.WriteHeader(400)
           w.Write([]byte("You do not have a group with this name"))
