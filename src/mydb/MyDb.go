@@ -246,7 +246,7 @@ func RemoveFromGroup(groupName *string, userId *string, userToAdd *string) strin
   c.Find(bson.M{"name": *groupName, "owner": *userId}).One(&result)
   user := GetUserFromId(userId);
 
-  if (result.Owner != userId) {
+  if (result.Owner != *userId) {
     return "You are not the group owner";
   }
   if (user.Email == *userToAdd) {
