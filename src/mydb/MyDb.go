@@ -244,6 +244,15 @@ func RemoveFromGroup(groupName *string, userId *string, userToAdd *string) strin
   c := instance.Session.DB("slidare").C("groups")
   result := models.GroupModel{}
   c.Find(bson.M{"name": *groupName, "owner": *userId}).One(&result)
+  user := GetUserFromId(userId);
+
+  if (result.Owner != userId) {
+    return "You are not the group owner";
+  }
+  if (user.Email == *userToAdd) {
+    return "You are the owner of the group, you cant leave the group";
+  }
+
   for idx,tmpUser := range result.Users {
     if (*userToAdd == tmpUser) {
 //      result.Users = append(result.Users, *userToAdd)
