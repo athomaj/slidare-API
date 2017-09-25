@@ -529,8 +529,13 @@ func RemoveFromGroup(token *string) negroni.HandlerFunc {
         contactId := params["contact_identifier"].(string)
         strErr := database.RemoveFromGroup(&groupName, &user.ID, &contactId)
         if (strErr == "") {
+          respJson, err := json.Marshal(bson.M{"response": "User removed from group"})
+           if err != nil {
+               return
+           }
+          w.Header().Set("Content-Type", "application/json")
           w.WriteHeader(200)
-          w.Write([]byte("User removed from group"))
+          w.Write([]byte(respJson))
         } else {
           w.WriteHeader(400)
           w.Write([]byte(strErr))
@@ -556,6 +561,7 @@ func AddToGroup(token *string) negroni.HandlerFunc {
     logger.Info("AddToGroup called")
     user := database.GetUserFromToken(token)
     if (user == nil) {
+      w.Header().Set("Content-Type", "application/json")
       w.WriteHeader(400)
       w.Write([]byte("User does not exist"))
       logger.Info("User does not exist")
@@ -569,6 +575,7 @@ func AddToGroup(token *string) negroni.HandlerFunc {
         decoder.Decode(&params)
 
         if (params["contact_identifier"] == nil) {
+          w.Header().Set("Content-Type", "application/json")
           w.WriteHeader(400)
           w.Write([]byte("No contact indentifier specified"))
           logger.Info("No contact indentifier specified")
@@ -577,13 +584,20 @@ func AddToGroup(token *string) negroni.HandlerFunc {
         contactId := params["contact_identifier"].(string)
         strErr := database.AddToGroup(&groupName, &user.ID, &contactId)
         if (strErr == "") {
+          respJson, err := json.Marshal(bson.M{"response": "User added to group"})
+           if err != nil {
+               return
+           }
+          w.Header().Set("Content-Type", "application/json")
           w.WriteHeader(200)
-          w.Write([]byte("User added to group"))
+          w.Write([]byte(respJson))
         } else {
+          w.Header().Set("Content-Type", "application/json")
           w.WriteHeader(400)
           w.Write([]byte(strErr))
         }
       } else {
+        w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(400)
         w.Write([]byte("No group with that name"))
         logger.Info("You already have a group with this name: %s", groupName)
@@ -612,8 +626,13 @@ func RemoveGroup(token *string) negroni.HandlerFunc {
 
       if (database.IsExistingGroup(&groupName, &user.ID) == true) {
         database.DeleteGroup(&groupName, &user.ID)
+        respJson, err := json.Marshal(bson.M{"response": "Group Deleted"})
+         if err != nil {
+             return
+         }
+        w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(200)
-        w.Write([]byte("Group Deleted"))
+        w.Write([]byte(respJson))
       } else {
         w.WriteHeader(400)
         w.Write([]byte("No group with that name"))
