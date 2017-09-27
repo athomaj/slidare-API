@@ -9,8 +9,9 @@ import (
     "fmt"
     "errors"
     "github.com/antigloss/go/logger"
+    "math/rand"
+    "strconv"
 )
-
 
 var instance mongodb
 var once sync.Once
@@ -91,6 +92,19 @@ func UpdateUserEmail(userEmail *string, user *models.UserModel) error {
   if err != nil {
     c.UpdateId(user.ID, bson.M{"$set": bson.M{"email": *userEmail}})
     logger.Info("UserEmail Updated")
+  } else {
+    logger.Info("UpdateUserEmail failed: %s", err)
+  }
+  return err
+}
+
+func ResetUserPassword(userEmail *string) error {
+  c := instance.Session.DB("slidare").C("users")
+  var result models.UserModel
+  err := c.Find(bson.M{"email": userEmail}).One(&result)
+  if err == nil {
+    c.UpdateId(result.ID, bson.M{"$set": bson.M{"password": strconv.Itoa(rand.Int())}})
+    logger.Info("UserPassword Reseted")
   } else {
     logger.Info("UpdateUserEmail failed: %s", err)
   }

@@ -153,6 +153,7 @@ func main() {
     router.HandleFunc("/createUser", userControllers.CreateUser).Methods("POST")
     router.HandleFunc("/loginUser", userControllers.LoginUser).Methods("POST")
     router.HandleFunc("/token-auth", controllers.Login).Methods("POST")
+    router.HandleFunc("/resetPassword", userControllers.ResetPassword).Methods("POST")
 
     logger.Info(http.ListenAndServe(":50000", router).Error())
 }

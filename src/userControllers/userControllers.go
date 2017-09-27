@@ -219,6 +219,98 @@ func UpdateUserEmail(token *string) negroni.HandlerFunc {
   }
 }
 
+// func LoginUser(w http.ResponseWriter, r *http.Request) {
+//   logger.Info("LoginUser called")
+//   decoder := json.NewDecoder(r.Body)
+//   var user models.UserModel
+//   err := decoder.Decode(&user)
+//   if err != nil {
+//     log.Println("Error while decoding Request");
+//     logger.Info("Error while decoding Request")
+//   } else {
+//     log.Printf("%s %s %s %s\n", user.Firstname, user.LastName, user.Email, user.PhoneNumber);
+//     logger.Info("Received user login with Firstname:%s, Lastname:%s, Email:%s, PhoneNumber:%s, Password:%s, FBToken:%s, FBUserID:%s", user.Firstname, user.LastName, user.Email, user.PhoneNumber, user.Password, user.FBToken, user.FBUserID)
+//   }
+//
+//   valid, errMsg := checkUserInformationsForLogin(user)
+//   if (valid == false && errMsg == "User does not exist" && len(user.FBToken) != 0) {
+//     createFacebookUser(w, r, user)
+//     return ;
+//   }
+//   if (valid){
+//     user := database.GetUsersByEmail(user.Email)
+//
+//     w.Header().Set("Content-Type", "application/json")
+//     w.WriteHeader(200)
+//     var resp SignInResponse
+//     resp.Token = user.Token
+//     resp.ID = user.ID
+//     respJson, err := json.Marshal(resp)
+//     if err != nil {
+//       logger.Info("User Logged in Failed: %s", err)
+//         return
+//     }
+//     logger.Info("User Logged in")
+//     w.Write([]byte(respJson))
+//   } else {
+//     w.Header().Set("Content-Type", "application/json")
+//     w.WriteHeader(400)
+//     w.Write([]byte(errMsg))
+//     logger.Info("User Logged in Failed: %s", errMsg)
+//   }
+// }
+
+
+/*
+** POST Request on /resetPassword
+** Arguments: email
+** Header: Authorization: Bearer token
+*/
+func ResetPassword(w http.ResponseWriter, r *http.Request){
+  logger.Info("ResetPassword called")
+  var params map[string]interface{}
+  decoder := json.NewDecoder(r.Body)
+  decoder.Decode(&params)
+  if (params["email"] == nil) {
+    respJson, err := json.Marshal(bson.M{"error": "mandatory field not provided"})
+    if err != nil {
+       return
+    }
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(400)
+    w.Write([]byte(respJson))
+    logger.Info("mandatory field <email> not provided")
+    return ;
+  }
+  userEmail := params["email"].(string)
+
+  if (len(userEmail) == 0) {
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(400)
+    w.Write([]byte("Email is empty"))
+    logger.Info("Email is empty")
+    return
+  }
+
+  err := database.ResetUserPassword(&userEmail)
+  if (err == nil) {
+    respJson, err := json.Marshal(bson.M{"res": "password_sent"})
+     if err != nil {
+         return
+     }
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(200)
+    w.Write([]byte(respJson))
+    logger.Info("User Password Sent")
+  } else {
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(400)
+    w.Write([]byte("Email already exist"))
+    logger.Info("Email already exist")
+  }
+}
+
+
 /*
 ** POST Request on /updateUserPicture
 ** Arguments: profile_picture_url
@@ -339,7 +431,6 @@ func FetchUser(token *string) negroni.HandlerFunc {
     }
   }
 }
-
 
 /*
 ** PUT Request on /acceptContactInvite/{contact_identifier}
