@@ -11,6 +11,7 @@ import (
     "github.com/antigloss/go/logger"
     "math/rand"
     "strconv"
+    "net/smtp"
 )
 
 var instance mongodb
@@ -103,7 +104,30 @@ func ResetUserPassword(userEmail *string) error {
   var result models.UserModel
   err := c.Find(bson.M{"email": userEmail}).One(&result)
   if err == nil {
-    c.UpdateId(result.ID, bson.M{"$set": bson.M{"password": strconv.Itoa(rand.Int())}})
+    newPwd := strconv.Itoa(rand.Int())
+    c.UpdateId(result.ID, bson.M{"$set": bson.M{"password": newPwd}})
+    auth := smtp.PlainAuth(
+  		"",
+  		"julien.slidare@gmail.com",
+  		"slidaredev",
+  		"smtp.gmail.com",
+  	)
+  	// Connect to the server, authenticate, set the sender and recipient,
+  	// and send the email all in one step.
+    msg := []byte("To: " + *userEmail + "\r\n" +
+		"Subject: new slidare password!\r\n" +
+		"\r\n" +
+		"Here is your new password:" + newPwd + "\r\n")
+  	err := smtp.SendMail(
+  		"smtp.gmail.com:587",
+  		auth,
+  		"julien.slidare@gmail.com",
+  		[]string{*userEmail},
+  		[]byte(msg),
+  	)
+  	if err != nil {
+      logger.Info("Send Email Error: %s", err)
+  	}
     logger.Info("UserPassword Reseted")
   } else {
     logger.Info("UpdateUserEmail failed: %s", err)
