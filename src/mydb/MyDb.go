@@ -326,7 +326,7 @@ func LeaveGroup(groupId *string, userId *string, userEmail *string) string {
   // }
 
   for idx,tmpUser := range result.Users {
-    if (*userId == tmpUser.ID || *userEmail == tmpUser.Email) {
+    if (*userId == tmpUser || *userEmail == tmpUser) {
       result.Users = append(result.Users[:idx], result.Users[idx+1:]...)
       c.UpdateId(result.ID, &result);
       return "";
