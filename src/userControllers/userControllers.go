@@ -582,12 +582,12 @@ func RenameGroup(token *string) negroni.HandlerFunc {
 ** PUT Request on /leaveGroup/{group_identifier}
 ** Header: Authorization: Bearer token
 */
-func LeaveGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-  logger.Info("LeaveGroup called")
-  // vars := mux.Vars(r)
-  //
-  // group_identifier := vars["group_identifier"]
-}
+// func LeaveGroup(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+//   logger.Info("LeaveGroup called")
+//   // vars := mux.Vars(r)
+//   //
+//   // group_identifier := vars["group_identifier"]
+// }
 
 /*
 ** PUT Request on /removeFromGroup/{group_identifier}
