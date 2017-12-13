@@ -658,7 +658,7 @@ func LeaveGroup(token *string) negroni.HandlerFunc {
       vars := mux.Vars(r)
       groupId := vars["group_identifier"]
 
-      if (database.IsExistingGroupById(&groupId, &user.ID) == true) {
+      if (database.IsExistingGroupById(&groupId) == true) {
         var params map[string]interface{}
         decoder := json.NewDecoder(r.Body)
         decoder.Decode(&params)
