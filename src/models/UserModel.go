@@ -14,4 +14,5 @@ type UserModel struct {
   FBUserID string `json:"fb_user_id,omitempty" bson:"fb_user_id,omitempty"`
   Contacts []string `json:"contacts,omitempty" bson:"contacts,omitempty"`
   FileUrls []string `json:"file_urls,omitempty" bson:"file_urls,omitempty"`
+  Senders []string `json:"senders,omitempty" bson:"senders,omitempty"`
 }

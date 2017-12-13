@@ -264,7 +264,6 @@ func UpdateUserEmail(token *string) negroni.HandlerFunc {
 /*
 ** POST Request on /resetPassword
 ** Arguments: email
-** Header: Authorization: Bearer token
 */
 func ResetPassword(w http.ResponseWriter, r *http.Request){
   logger.Info("ResetPassword called")
@@ -642,6 +641,50 @@ func RemoveFromGroup(token *string) negroni.HandlerFunc {
   }
 }
 
+/*
+** PUT Request on /removeFromGroup/{group_identifier}
+** Arguments: contact_identifier
+** Header: Authorization: Bearer token
+*/
+func LeaveGroup(token *string) negroni.HandlerFunc {
+  return func (w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+    logger.Info("LeaveGroup called")
+    user := database.GetUserFromToken(token)
+    if (user == nil) {
+      w.WriteHeader(400)
+      w.Write([]byte("User does not exist"))
+      logger.Info("User does not exist")
+    } else {
+      vars := mux.Vars(r)
+      groupId := vars["group_identifier"]
+
+      if (database.IsExistingGroupById(&groupId, &user.ID) == true) {
+        var params map[string]interface{}
+        decoder := json.NewDecoder(r.Body)
+        decoder.Decode(&params)
+
+        strErr := database.LeaveGroup(&groupId, &user.ID, &user.Email)
+        if (strErr == "") {
+          respJson, err := json.Marshal(bson.M{"response": "User Left from group"})
+           if err != nil {
+               return
+           }
+          w.Header().Set("Content-Type", "application/json")
+          w.WriteHeader(200)
+          w.Write([]byte(respJson))
+        } else {
+          w.WriteHeader(400)
+          w.Write([]byte(strErr))
+        }
+      } else {
+        w.WriteHeader(400)
+        w.Write([]byte("No group with that name"))
+        logger.Info("You already have a group with this id: %s", groupId)
+        log.Println("No group with that name")
+      }
+    }
+  }
+}
 
 /*
 ** PUT Request on /addToGroup/{group_identifier}
@@ -1009,13 +1052,14 @@ func AddFileToList(token *string) negroni.HandlerFunc {
     decoder.Decode(&params)
 
     file_url := params["file_url"]
+    sender := params["sender"]
     if (user == nil) {
       w.Header().Set("Content-Type", "application/json")
       w.WriteHeader(400)
       w.Write([]byte("User does not exist"))
       logger.Info("User does not exist")
     } else {
-      database.AddFileToUser(&user.Email, file_url.(string))
+      database.AddFileToUser(&user.Email, file_url.(string), sender.(string))
       w.WriteHeader(200)
       respJson, err := json.Marshal(bson.M{"success": "file added"})
       if err != nil {
@@ -1077,7 +1121,7 @@ func GetUserFiles(token *string) negroni.HandlerFunc {
       logger.Info("User does not exist")
     } else {
       w.WriteHeader(200)
-      respJson, err := json.Marshal(bson.M{"file_urls": user.FileUrls})
+      respJson, err := json.Marshal(bson.M{"file_urls": user.FileUrls, "senders": user.Senders})
       if err != nil {
           return
       }

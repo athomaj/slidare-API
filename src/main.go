@@ -87,7 +87,7 @@ func main() {
         )).Methods("PUT")
     router.Handle("/leaveGroup/{group_identifier}", negroni.New(
         negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),
-        negroni.HandlerFunc(userControllers.FetchUserContact(&token)),
+        negroni.HandlerFunc(userControllers.LeaveGroup(&token)),
         )).Methods("PUT")
     router.Handle("/removeFromGroup/{group_identifier}", negroni.New(
         negroni.HandlerFunc(authentication.RequireTokenAuthentication(&token)),

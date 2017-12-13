@@ -217,11 +217,12 @@ func AddContactToUser(userEmail *string, contactID *string) {
     c.UpdateId(result.ID, &result)
 }
 
-func AddFileToUser(userEmail *string, fileUrl string) {
+func AddFileToUser(userEmail *string, fileUrl string, sender string) {
     c := instance.Session.DB("slidare").C("users")
     result := models.UserModel{}
     c.Find(bson.M{"email": *userEmail}).One(&result)
     result.FileUrls = append(result.FileUrls, fileUrl);
+    result.Senders = append(result.Senders, sender);
     c.UpdateId(result.ID, &result)
 }
 
@@ -240,6 +241,15 @@ func IsExistingGroupId(groupId *string, userId *string) bool {
 
   return err == nil
 }
+
+func IsExistingGroupById(groupId *string) bool {
+  c := instance.Session.DB("slidare").C("groups")
+  result := models.GroupModel{}
+  err := c.Find(bson.M{"_id": *groupId}).One(&result)
+
+  return err == nil
+}
+
 
 func FetchGroupsFromUser(userId *string, userEmail *string) []models.GroupModel {
   c := instance.Session.DB("slidare").C("groups")
@@ -294,6 +304,29 @@ func RemoveFromGroup(groupName *string, userId *string, userToAdd *string) strin
   for idx,tmpUser := range result.Users {
     if (*userToAdd == tmpUser) {
 //      result.Users = append(result.Users, *userToAdd)
+      result.Users = append(result.Users[:idx], result.Users[idx+1:]...)
+      c.UpdateId(result.ID, &result);
+      return "";
+    }
+  }
+  return "User not in Group";
+}
+
+func LeaveGroup(groupId *string, userId *string, userEmail *string) string {
+  c := instance.Session.DB("slidare").C("groups")
+  result := models.GroupModel{}
+  c.Find(bson.M{"_id": *groupId}).One(&result)
+  user := GetUserFromId(userId);
+
+  if (result.Owner == *userId) {
+    return "You are the group owner";
+  }
+  // if (user.Email == *userToAdd) {
+  //   return "You are the owner of the group, you cant leave the group";
+  // }
+
+  for idx,tmpUser := range result.Users {
+    if (*userId == tmpUser.ID || *userEmail == tmpUser.Email) {
       result.Users = append(result.Users[:idx], result.Users[idx+1:]...)
       c.UpdateId(result.ID, &result);
       return "";
