@@ -316,7 +316,7 @@ func LeaveGroup(groupId *string, userId *string, userEmail *string) string {
   c := instance.Session.DB("slidare").C("groups")
   result := models.GroupModel{}
   c.Find(bson.M{"_id": *groupId}).One(&result)
-  user := GetUserFromId(userId);
+//  user := GetUserFromId(userId);
 
   if (result.Owner == *userId) {
     return "You are the group owner";
