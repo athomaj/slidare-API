@@ -717,6 +717,9 @@ func AddToGroup(token *string) negroni.HandlerFunc {
           return ;
         }
         contactId := params["contact_identifier"].(string)
+        logger.Info("AddToGroup: contactId" + contactId)
+        logger.Info("AddToGroup: contacts" + user.Contacts)
+
         for _,tmpContact := range user.Contacts {
           if (contactId == tmpContact) {
             strErr := database.AddToGroup(&groupName, &user.ID, &contactId)
