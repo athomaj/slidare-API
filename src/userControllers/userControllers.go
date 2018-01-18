@@ -724,7 +724,7 @@ func AddToGroup(token *string) negroni.HandlerFunc {
         for _,tmpContact := range user.Contacts {
 //          logger.Info("AddToGroup: contacts" + tmpContact)
           if (contact.ID == tmpContact) {
-            strErr := database.AddToGroup(&groupName, &user.ID, &contact.ID)
+            strErr := database.AddToGroup(&groupName, &user.ID, &contactId)
             if (strErr == "") {
               respJson, err := json.Marshal(bson.M{"response": "User added to group"})
                if err != nil {
