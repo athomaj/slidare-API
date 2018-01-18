@@ -642,7 +642,7 @@ func RemoveFromGroup(token *string) negroni.HandlerFunc {
 }
 
 /*
-** PUT Request on /removeFromGroup/{group_identifier}
+** PUT Request on /leaveGroup/{group_identifier}
 ** Arguments: contact_identifier
 ** Header: Authorization: Bearer token
 */
@@ -717,20 +717,29 @@ func AddToGroup(token *string) negroni.HandlerFunc {
           return ;
         }
         contactId := params["contact_identifier"].(string)
-        strErr := database.AddToGroup(&groupName, &user.ID, &contactId)
-        if (strErr == "") {
-          respJson, err := json.Marshal(bson.M{"response": "User added to group"})
-           if err != nil {
-               return
-           }
-          w.Header().Set("Content-Type", "application/json")
-          w.WriteHeader(200)
-          w.Write([]byte(respJson))
-        } else {
-          w.Header().Set("Content-Type", "application/json")
-          w.WriteHeader(400)
-          w.Write([]byte(strErr))
+        for _,tmpContact := range user.Contacts {
+          if (contactId == tmpContact) {
+            strErr := database.AddToGroup(&groupName, &user.ID, &contactId)
+            if (strErr == "") {
+              respJson, err := json.Marshal(bson.M{"response": "User added to group"})
+               if err != nil {
+                   return
+               }
+              w.Header().Set("Content-Type", "application/json")
+              w.WriteHeader(200)
+              w.Write([]byte(respJson))
+            } else {
+              w.Header().Set("Content-Type", "application/json")
+              w.WriteHeader(400)
+              w.Write([]byte(strErr))
+            }
+            return ;
+          }
         }
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(400)
+        w.Write([]byte("user already in your contacts"))
+        logger.Info("AddToGroup: user not in your contacts")
       } else {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(400)
@@ -953,7 +962,6 @@ func AddContact(token *string) negroni.HandlerFunc {
               logger.Info("AddContact: user already in your contacts")
               return ;
             }
-            // element is the element from someSlice for where we are
           }
         }
         database.AddContactToUser(&user.Email, &contact.ID)
