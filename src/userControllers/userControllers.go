@@ -717,12 +717,14 @@ func AddToGroup(token *string) negroni.HandlerFunc {
           return ;
         }
         contactId := params["contact_identifier"].(string)
-        logger.Info("AddToGroup: contactId" + contactId)
+        contact := database.GetUsersByEmail(contactId)
+
+//        logger.Info("AddToGroup: contactId" + contactId)
 
         for _,tmpContact := range user.Contacts {
-          logger.Info("AddToGroup: contacts" + tmpContact)
-          if (contactId == tmpContact) {
-            strErr := database.AddToGroup(&groupName, &user.ID, &contactId)
+//          logger.Info("AddToGroup: contacts" + tmpContact)
+          if (contact.ID == tmpContact) {
+            strErr := database.AddToGroup(&groupName, &user.ID, &contact.ID)
             if (strErr == "") {
               respJson, err := json.Marshal(bson.M{"response": "User added to group"})
                if err != nil {
