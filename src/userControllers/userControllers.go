@@ -738,7 +738,7 @@ func AddToGroup(token *string) negroni.HandlerFunc {
         }
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(400)
-        w.Write([]byte("user already in your contacts"))
+        w.Write([]byte("user not in your contacts"))
         logger.Info("AddToGroup: user not in your contacts")
       } else {
         w.Header().Set("Content-Type", "application/json")
